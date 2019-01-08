@@ -21,14 +21,9 @@ public class Plane {
     public Plane(int propellerRotationSpeed, int propellerBladesCount,
             int propellerBladesWidth, int gunFireRate) {
 
-        Thread engine = new Thread(
-                new Propeller(propellerRotationSpeed, propellerBladesCount,
-                        propellerBladesWidth, this));
-        Thread machineGun = new Thread(new MachineGun(gunFireRate, this));
-
-        engine.start();
-        machineGun.start();
-
+        new Thread(new Propeller(propellerRotationSpeed, propellerBladesCount,
+                propellerBladesWidth, this)).start();
+        new Thread(new MachineGun(gunFireRate, this)).start();
     }
 
     public static void main(String[] args) {
@@ -39,7 +34,7 @@ public class Plane {
 
     }
 
-    public InfoOutput getInfoOutput() {
+    InfoOutput getInfoOutput() {
         return infoOutput;
     }
 
@@ -59,11 +54,11 @@ public class Plane {
         this.canMachineGunShoot = canMachineGunShoot;
     }
 
-    public CountDownLatch getSynchronizer() {
+    CountDownLatch getSynchronizer() {
         return synchronizer;
     }
 
-    public void resetSynchronizer() {
+    void resetSynchronizer() {
         synchronizer = new CountDownLatch(1);
     }
 }
