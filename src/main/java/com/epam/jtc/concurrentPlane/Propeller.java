@@ -56,8 +56,10 @@ public class Propeller implements Runnable {
                         rotationUntilNextBlock);
 
                 Thread.sleep(millis, nanos);
-            } catch (InterruptedException e) {
+            } catch (InterruptedException | IllegalArgumentException e) {
+                //TODO
                 e.printStackTrace();
+                Thread.currentThread().interrupt();
             }
         }
     }
@@ -95,13 +97,15 @@ public class Propeller implements Runnable {
             plane.resetSynchronizer();
 
             plane.getInfoOutput().showCanShoot(false);
-        } else if (rotationUntilNextBlock <= distanceBetweenBlades) {
-            if (plane.getSynchronizer().getCount() > 0) {
-                plane.getSynchronizer().countDown();
+        } else if (rotationUntilNextBlock <= distanceBetweenBlades &&
+                plane.getSynchronizer().getCount() > 0) {
+            plane.getSynchronizer().countDown();
 
-                plane.getInfoOutput().showCanShoot(true);
-            }
+            plane.getInfoOutput().showCanShoot(true);
+        } else {
+            throw new IllegalArgumentException();
         }
+
 
         return rotationUntilNextBlock;
     }

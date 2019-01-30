@@ -26,6 +26,7 @@ public class MachineGun implements Runnable {
                 Thread.sleep(millis, nanos);
             } catch (InterruptedException e) {
                 e.printStackTrace();
+                Thread.currentThread().interrupt();
             }
         }
     }
