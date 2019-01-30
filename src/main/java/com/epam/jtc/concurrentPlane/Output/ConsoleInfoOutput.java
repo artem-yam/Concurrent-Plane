@@ -28,10 +28,4 @@ public class ConsoleInfoOutput implements InfoOutput {
         }
     }
 
-    @Override
-    public void showErrors(Throwable... errors) {
-        for (Throwable error : errors) {
-            System.err.println(error.toString());
-        }
-    }
 }

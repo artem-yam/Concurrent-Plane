@@ -7,7 +7,5 @@ public interface InfoOutput {
     void showCanShoot(boolean canShoot);
 
     void showPropellerBladesPositions(double... blades);
-
-    void showErrors(Throwable... errors);
-
+    
 }

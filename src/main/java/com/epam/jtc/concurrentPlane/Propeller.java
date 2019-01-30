@@ -9,7 +9,7 @@ public class Propeller implements Runnable {
     private Plane plane;
 
     Propeller(int propellerRotationSpeed, int propellerBladesCount,
-            int propellerBladeWidth, Plane plane) {
+              int propellerBladeWidth, Plane plane) {
         this.rotationSpeed = propellerRotationSpeed;
 
         if (propellerBladesCount * propellerBladeWidth >= 180) {
@@ -39,7 +39,7 @@ public class Propeller implements Runnable {
         int nanos = (int) ((sleepTime - millis) * 1000000);
 
 
-        plane.getInfoOutput().showPropellerBladesPositions(bladesPositions);
+        // plane.getInfoOutput().showPropellerBladesPositions(bladesPositions);
         plane.getInfoOutput().showCanShoot(false);
 
 
@@ -49,8 +49,8 @@ public class Propeller implements Runnable {
                 rotationUntilNextBlock = updateBladesPosition(bladesPositions,
                         rotationStep, rotationUntilNextBlock);
 
-                plane.getInfoOutput().showPropellerBladesPositions(
-                        bladesPositions);
+                //   plane.getInfoOutput().showPropellerBladesPositions(
+                //            bladesPositions);
 
                 rotationUntilNextBlock = checkShotOpportunityChange(
                         rotationUntilNextBlock);
@@ -72,7 +72,8 @@ public class Propeller implements Runnable {
     }
 
     private double updateBladesPosition(double[] bladesPosition,
-            double rotationStep, double rotationUntilNextBlock) {
+                                        double rotationStep,
+                                        double rotationUntilNextBlock) {
         for (int i = 0; i < bladesPosition.length; i++) {
 
             bladesPosition[i] += rotationStep;

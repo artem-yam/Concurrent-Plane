@@ -5,7 +5,7 @@ import com.epam.jtc.concurrentPlane.Output.InfoOutput;
 
 import java.util.concurrent.CountDownLatch;
 
-public class Plane {
+public class Plane implements Runnable {
 
     private static final int DEFAULT_PROPELLER_ROTATION_SPEED = 1200;
     private static final int DEFAULT_PROPELLER_BLADES_COUNT = 5;
@@ -17,13 +17,39 @@ public class Plane {
     private boolean isPropellerActive = true;
     private boolean canMachineGunShoot = true;
 
+    private Propeller propeller;
+    private MachineGun machineGun;
+
 
     public Plane(int propellerRotationSpeed, int propellerBladesCount,
-            int propellerBladesWidth, int gunFireRate) {
+                 int propellerBladesWidth, int gunFireRate) {
 
-        new Thread(new Propeller(propellerRotationSpeed, propellerBladesCount,
-                propellerBladesWidth, this)).start();
-        new Thread(new MachineGun(gunFireRate, this)).start();
+       /* Thread propeller = new Thread(
+                new Propeller(propellerRotationSpeed, propellerBladesCount,
+                        propellerBladesWidth, this));
+        Thread gun = new Thread(new MachineGun(gunFireRate, this));*/
+
+        propeller = new Propeller(propellerRotationSpeed, propellerBladesCount,
+                propellerBladesWidth, this);
+        machineGun = new MachineGun(gunFireRate, this);
+
+
+       /* Thread propeller = new Propeller(propellerRotationSpeed, propellerBladesCount,
+                        propellerBladesWidth, this);
+        Thread gun = new MachineGun(gunFireRate, this);*/
+
+      /*  propeller.start();
+        gun.start();
+
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        propeller.interrupt();
+        gun.interrupt();*/
+
     }
 
     public static void main(String[] args) {
@@ -31,6 +57,8 @@ public class Plane {
         Plane plane = new Plane(DEFAULT_PROPELLER_ROTATION_SPEED,
                 DEFAULT_PROPELLER_BLADES_COUNT, DEFAULT_PROPELLER_BLADE_WIDTH,
                 DEFAULT_FIRE_RATE);
+
+        new Thread(plane).start();
 
     }
 
@@ -60,5 +88,21 @@ public class Plane {
 
     void resetSynchronizer() {
         synchronizer = new CountDownLatch(1);
+    }
+
+    @Override
+    public void run() {
+
+        new Thread(propeller).start();
+        new Thread(machineGun).start();
+
+        try {
+            Thread.sleep(5000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        isPropellerActive = false;
+        canMachineGunShoot = false;
     }
 }
