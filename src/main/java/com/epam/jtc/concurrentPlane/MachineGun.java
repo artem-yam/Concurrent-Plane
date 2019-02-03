@@ -1,6 +1,11 @@
 package com.epam.jtc.concurrentPlane;
 
+
+import static com.epam.jtc.concurrentPlane.Plane.LOGGER;
+
 public class MachineGun implements Runnable {
+
+    private final static String SHOT = "Gun shot! ";
 
     private int fireRate;
     private Plane plane;
@@ -16,12 +21,13 @@ public class MachineGun implements Runnable {
         long millis = (long) sleepTime;
         int nanos = (int) ((sleepTime - millis) * 1000000);
 
-        while (plane.canMachineGunShoot()) {
+        while (!Thread.currentThread().isInterrupted()/*plane.canMachineGunShoot()*/) {
             try {
 
                 plane.getSynchronizer().await();
 
-                plane.getInfoOutput().showShot();
+                LOGGER.info(SHOT);
+                //plane.getInfoOutput().showShot();
 
                 Thread.sleep(millis, nanos);
             } catch (InterruptedException e) {

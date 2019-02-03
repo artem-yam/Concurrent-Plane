@@ -1,6 +1,11 @@
 package com.epam.jtc.concurrentPlane;
 
+import static com.epam.jtc.concurrentPlane.Plane.LOGGER;
+
 public class Propeller implements Runnable {
+
+    private final static String SHOOTING_BLOCKED = "Shooting blocked";
+    private final static String SHOOTING_ALLOWED = "Shooting allowed";
 
     private final int bladesCount;
     private final int bladesWidth;
@@ -9,7 +14,7 @@ public class Propeller implements Runnable {
     private Plane plane;
 
     Propeller(int propellerRotationSpeed, int propellerBladesCount,
-              int propellerBladeWidth, Plane plane) {
+            int propellerBladeWidth, Plane plane) {
         this.rotationSpeed = propellerRotationSpeed;
 
         if (propellerBladesCount * propellerBladeWidth >= 180) {
@@ -24,45 +29,6 @@ public class Propeller implements Runnable {
         this.plane = plane;
     }
 
-    @Override
-    public void run() {
-        double rotationStep = (double) bladesWidth / 2;
-        double rotationUntilNextBlock = distanceBetweenBlades + bladesWidth;
-
-
-        double[] bladesPositions = getBladesStartPositions(
-                rotationUntilNextBlock);
-
-
-        double sleepTime = 1000 / ((double) rotationSpeed / rotationStep * 6);
-        long millis = (long) sleepTime;
-        int nanos = (int) ((sleepTime - millis) * 1000000);
-
-
-        // plane.getInfoOutput().showPropellerBladesPositions(bladesPositions);
-        plane.getInfoOutput().showCanShoot(false);
-
-
-        while (plane.isPropellerActive()) {
-            try {
-
-                rotationUntilNextBlock = updateBladesPosition(bladesPositions,
-                        rotationStep, rotationUntilNextBlock);
-
-                //   plane.getInfoOutput().showPropellerBladesPositions(
-                //            bladesPositions);
-
-                rotationUntilNextBlock = checkShotOpportunityChange(
-                        rotationUntilNextBlock);
-
-                Thread.sleep(millis, nanos);
-            } catch (InterruptedException | IllegalArgumentException e) {
-                //TODO
-                e.printStackTrace();
-                Thread.currentThread().interrupt();
-            }
-        }
-    }
 
     private double[] getBladesStartPositions(double rotationUntilNextBlade) {
         double[] bladesPositions = new double[bladesCount];
@@ -74,8 +40,7 @@ public class Propeller implements Runnable {
     }
 
     private double updateBladesPosition(double[] bladesPosition,
-                                        double rotationStep,
-                                        double rotationUntilNextBlock) {
+            double rotationStep, double rotationUntilNextBlock) {
         for (int i = 0; i < bladesPosition.length; i++) {
 
             bladesPosition[i] += rotationStep;
@@ -96,18 +61,61 @@ public class Propeller implements Runnable {
 
             plane.resetSynchronizer();
 
-            plane.getInfoOutput().showCanShoot(false);
+            LOGGER.info(SHOOTING_BLOCKED);
+            //  plane.getInfoOutput().showCanShoot(false);
         } else if (rotationUntilNextBlock <= distanceBetweenBlades &&
                 plane.getSynchronizer().getCount() > 0) {
             plane.getSynchronizer().countDown();
 
-            plane.getInfoOutput().showCanShoot(true);
-        } else {
-            throw new IllegalArgumentException();
+
+            LOGGER.info(SHOOTING_ALLOWED);
+            // plane.getInfoOutput().showCanShoot(true);
         }
 
 
         return rotationUntilNextBlock;
+    }
+
+    @Override
+    public void run() {
+        double rotationStep = (double) bladesWidth / 2;
+        double rotationUntilNextBlock = distanceBetweenBlades + bladesWidth;
+
+
+        double[] bladesPositions = getBladesStartPositions(
+                rotationUntilNextBlock);
+
+
+        double sleepTime = 1000 / ((double) rotationSpeed / rotationStep * 6);
+        long millis = (long) sleepTime;
+        int nanos = (int) ((sleepTime - millis) * 1000000);
+
+
+        // plane.getInfoOutput().showPropellerBladesPositions(bladesPositions);
+        LOGGER.info(SHOOTING_BLOCKED);
+        //  plane.getInfoOutput().showCanShoot(false);
+
+
+        while (!Thread.currentThread()
+                      .isInterrupted()/*plane.isPropellerActive()*/) {
+            try {
+
+                rotationUntilNextBlock = updateBladesPosition(bladesPositions,
+                        rotationStep, rotationUntilNextBlock);
+
+                //   plane.getInfoOutput().showPropellerBladesPositions(
+                //            bladesPositions);
+
+                rotationUntilNextBlock = checkShotOpportunityChange(
+                        rotationUntilNextBlock);
+
+                Thread.sleep(millis, nanos);
+            } catch (InterruptedException e) {
+                //TODO
+                e.printStackTrace();
+                Thread.currentThread().interrupt();
+            }
+        }
     }
 }
 
