@@ -1,11 +1,9 @@
 package com.epam.jtc.concurrentPlane;
 
 
-import static com.epam.jtc.concurrentPlane.Plane.LOGGER;
-
 public class MachineGun implements Runnable {
 
-    private final static String SHOT = "Gun shot! ";
+    //private final static String SHOT = "Gun shot! ";
 
     private int fireRate;
     private Plane plane;
@@ -21,17 +19,38 @@ public class MachineGun implements Runnable {
         long millis = (long) sleepTime;
         int nanos = (int) ((sleepTime - millis) * 1000000);
 
-        while (!Thread.currentThread().isInterrupted()/*plane.canMachineGunShoot()*/) {
+        while (!Thread.currentThread()
+                .isInterrupted()/*plane.canMachineGunShoot()*/) {
             try {
 
-                plane.getSynchronizer().await();
 
-                LOGGER.info(SHOT);
-                //plane.getInfoOutput().showShot();
+                while (!plane.canMachineGunShoot()) {
+                }
 
-                Thread.sleep(millis, nanos);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
+                plane.getSynchronizer().lock();
+                try {
+                    plane.getInfoOutput().showShot();
+                    plane.setCanMachineGunShoot(false);
+
+                    // plane.getSynchronizer().await();
+
+                    //LOGGER.info(SHOT);
+
+
+                /*plane.getInfoOutput().showShot();
+                plane.setCanMachineGunShoot(false);
+
+                plane.getSynchronizer().unlock();*/
+
+                    Thread.sleep(millis, nanos);
+
+                    plane.setCanMachineGunShoot(true);
+
+                } finally {
+                    plane.getSynchronizer().unlock();
+                }
+            } catch (InterruptedException interruptedException) {
+                // e.printStackTrace();
                 Thread.currentThread().interrupt();
             }
         }
