@@ -2,7 +2,7 @@ package com.epam.jtc.concurrentPlane.Output;
 
 public interface InfoOutput {
 
-    void showShot();
+    void showShot(String qwe);
 
     void showCanShoot(boolean canShoot);
 

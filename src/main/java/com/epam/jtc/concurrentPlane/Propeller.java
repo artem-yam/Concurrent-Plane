@@ -1,7 +1,5 @@
 package com.epam.jtc.concurrentPlane;
 
-import static com.epam.jtc.concurrentPlane.Plane.LOGGER;
-
 public class Propeller implements Runnable {
 
     private final static String SHOOTING_BLOCKED = "Shooting blocked";
@@ -14,7 +12,7 @@ public class Propeller implements Runnable {
     private Plane plane;
 
     Propeller(int propellerRotationSpeed, int propellerBladesCount,
-            int propellerBladeWidth, Plane plane) {
+              int propellerBladeWidth, Plane plane) {
         this.rotationSpeed = propellerRotationSpeed;
 
         if (propellerBladesCount * propellerBladeWidth >= 180) {
@@ -40,7 +38,8 @@ public class Propeller implements Runnable {
     }
 
     private double updateBladesPosition(double[] bladesPosition,
-            double rotationStep, double rotationUntilNextBlock) {
+                                        double rotationStep,
+                                        double rotationUntilNextBlock) {
         for (int i = 0; i < bladesPosition.length; i++) {
 
             bladesPosition[i] += rotationStep;
@@ -61,15 +60,12 @@ public class Propeller implements Runnable {
 
             plane.resetSynchronizer();
 
-            LOGGER.info(SHOOTING_BLOCKED);
-            //  plane.getInfoOutput().showCanShoot(false);
+            plane.getInfoOutput().showCanShoot(false);
         } else if (rotationUntilNextBlock <= distanceBetweenBlades &&
                 plane.getSynchronizer().getCount() > 0) {
             plane.getSynchronizer().countDown();
 
-
-            LOGGER.info(SHOOTING_ALLOWED);
-            // plane.getInfoOutput().showCanShoot(true);
+            plane.getInfoOutput().showCanShoot(true);
         }
 
 
@@ -92,12 +88,11 @@ public class Propeller implements Runnable {
 
 
         // plane.getInfoOutput().showPropellerBladesPositions(bladesPositions);
-        LOGGER.info(SHOOTING_BLOCKED);
-        //  plane.getInfoOutput().showCanShoot(false);
+        plane.getInfoOutput().showCanShoot(false);
 
 
         while (!Thread.currentThread()
-                      .isInterrupted()/*plane.isPropellerActive()*/) {
+                .isInterrupted()) {
             try {
 
                 rotationUntilNextBlock = updateBladesPosition(bladesPositions,
@@ -106,13 +101,18 @@ public class Propeller implements Runnable {
                 //   plane.getInfoOutput().showPropellerBladesPositions(
                 //            bladesPositions);
 
-                rotationUntilNextBlock = checkShotOpportunityChange(
-                        rotationUntilNextBlock);
+                plane.getLock().lock();
+                try {
+
+                    rotationUntilNextBlock = checkShotOpportunityChange(
+                            rotationUntilNextBlock);
+
+                } finally {
+                    plane.getLock().unlock();
+                }
 
                 Thread.sleep(millis, nanos);
-            } catch (InterruptedException e) {
-                //TODO
-                e.printStackTrace();
+            } catch (InterruptedException interruptedException) {
                 Thread.currentThread().interrupt();
             }
         }

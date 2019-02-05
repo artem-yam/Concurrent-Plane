@@ -1,8 +1,6 @@
 package com.epam.jtc.concurrentPlane;
 
 
-import static com.epam.jtc.concurrentPlane.Plane.LOGGER;
-
 public class MachineGun implements Runnable {
 
     private final static String SHOT = "Gun shot! ";
@@ -21,17 +19,37 @@ public class MachineGun implements Runnable {
         long millis = (long) sleepTime;
         int nanos = (int) ((sleepTime - millis) * 1000000);
 
-        while (!Thread.currentThread().isInterrupted()/*plane.canMachineGunShoot()*/) {
+        while (!Thread.currentThread().isInterrupted()) {
             try {
 
-                plane.getSynchronizer().await();
+                while (plane.getSynchronizer().getCount() > 0 ||
+                        !plane.getLock().tryLock()) {
+                    //plane.getLock().tryLock();
+                }
 
-                LOGGER.info(SHOT);
-                //plane.getInfoOutput().showShot();
+//                plane.getSynchronizer().await();
+//                plane.getLock().lock();
+
+                /*while (!plane.getLock().tryLock()) {
+                }*/
+                //   if (plane.getLock().tryLock()) {
+
+                try {
+                    //    plane.getSynchronizer().await();
+
+
+                    plane.getInfoOutput().showShot(
+                            String.valueOf(
+                                    plane.getSynchronizer().getCount()));
+
+
+                } finally {
+                    plane.getLock().unlock();
+                }
+
 
                 Thread.sleep(millis, nanos);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
+            } catch (InterruptedException interruptedException) {
                 Thread.currentThread().interrupt();
             }
         }
