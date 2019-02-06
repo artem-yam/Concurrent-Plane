@@ -2,9 +2,6 @@ package com.epam.jtc.concurrentPlane;
 
 public class Propeller implements Runnable {
 
-    private final static String SHOOTING_BLOCKED = "Shooting blocked";
-    private final static String SHOOTING_ALLOWED = "Shooting allowed";
-
     private final int bladesCount;
     private final int bladesWidth;
     private final double distanceBetweenBlades;
@@ -37,40 +34,80 @@ public class Propeller implements Runnable {
         return bladesPositions;
     }
 
-    private double updateBladesPosition(double[] bladesPosition,
-                                        double rotationStep,
-                                        double rotationUntilNextBlock) {
-        for (int i = 0; i < bladesPosition.length; i++) {
+    private double[] updateBladesPosition(double[] bladesPositions,
+                                          double rotationStep) {
+        for (int i = 0; i < bladesPositions.length; i++) {
 
-            bladesPosition[i] += rotationStep;
+            bladesPositions[i] += rotationStep;
 
-            if (bladesPosition[i] >= 360) {
-                bladesPosition[i] -= 360;
+            if (bladesPositions[i] >= 360) {
+                bladesPositions[i] -= 360;
             }
 
         }
 
-        return rotationUntilNextBlock - rotationStep;
+        return bladesPositions;
     }
 
 
-    private double checkShotOpportunityChange(double rotationUntilNextBlock) {
-        if (rotationUntilNextBlock <= 0) {
-            rotationUntilNextBlock += distanceBetweenBlades + bladesWidth;
+    private boolean checkMachineGunShotOpportunity(MachineGun gun,
+                                                   double[] bladesPositions) {
+        boolean canShoot = true;
 
-            plane.resetSynchronizer();
+        for (double blade : bladesPositions) {
+            if (gun.getPositionRelativeToPropeller() >= blade &&
+                    gun.getPositionRelativeToPropeller() <=
+                            blade + bladesWidth) {
+                plane.resetSynchronizer(plane.getSynchronizers()
+                        .get(plane.getMachineGuns().indexOf(gun)));
+
+                plane.getInfoOutput().showCanShoot(plane.getMachineGuns().indexOf(gun), false);
+
+                canShoot = false;
+            }
+        }
+
+        if (canShoot) {
+            plane.getSynchronizers()
+                    .get(plane.getMachineGuns().indexOf(gun)).countDown();
+
+            plane.getInfoOutput().showCanShoot(plane.getMachineGuns().indexOf(gun), true);
+
+        }
+
+        return canShoot;
+    }
+
+/*    private boolean checkShotOpportunityChange(MachineGun gun,
+                                               double rotationUntilNextBlock) {
+        boolean shotOpportunityChange;
+
+
+        if (rotationUntilNextBlock <= 0) {
+
+            plane.resetSynchronizer(plane.getSynchronizers()
+                    .get(plane.getMachineGuns().indexOf(gun)));
 
             plane.getInfoOutput().showCanShoot(false);
+
+            shotOpportunityChange = true;
         } else if (rotationUntilNextBlock <= distanceBetweenBlades &&
-                plane.getSynchronizer().getCount() > 0) {
-            plane.getSynchronizer().countDown();
+                plane.getSynchronizers()
+                        .get(plane.getMachineGuns().indexOf(gun)).getCount() >
+                        0) {
+            plane.getSynchronizers()
+                    .get(plane.getMachineGuns().indexOf(gun)).countDown();
 
             plane.getInfoOutput().showCanShoot(true);
+
+            shotOpportunityChange = true;
+        } else {
+            shotOpportunityChange = false;
         }
 
 
-        return rotationUntilNextBlock;
-    }
+        return shotOpportunityChange;
+    }*/
 
     @Override
     public void run() {
@@ -87,25 +124,44 @@ public class Propeller implements Runnable {
         int nanos = (int) ((sleepTime - millis) * 1000000);
 
 
-        // plane.getInfoOutput().showPropellerBladesPositions(bladesPositions);
-        plane.getInfoOutput().showCanShoot(false);
+        //plane.getInfoOutput().showPropellerBladesPositions(bladesPositions);
+        //plane.getInfoOutput().showCanShoot(false);
+
+        for (MachineGun gun : plane.getMachineGuns()) {
+
+            checkMachineGunShotOpportunity(gun, bladesPositions);
+
+        }
 
 
         while (!Thread.currentThread()
                 .isInterrupted()) {
             try {
 
-                rotationUntilNextBlock = updateBladesPosition(bladesPositions,
-                        rotationStep, rotationUntilNextBlock);
+                updateBladesPosition(bladesPositions,
+                        rotationStep);
 
-                //   plane.getInfoOutput().showPropellerBladesPositions(
-                //            bladesPositions);
+                rotationUntilNextBlock -= rotationStep;
+
+                // plane.getInfoOutput().showPropellerBladesPositions(
+                //          bladesPositions);
 
                 plane.getLock().lock();
                 try {
 
-                    rotationUntilNextBlock = checkShotOpportunityChange(
-                            rotationUntilNextBlock);
+
+                    for (MachineGun gun : plane.getMachineGuns()) {
+
+                        checkMachineGunShotOpportunity(gun, bladesPositions);
+
+                    /*    if (checkShotOpportunityChange(gun, bladesPositions,
+                                rotationUntilNextBlock) &&
+                                rotationUntilNextBlock <= 0) {
+                            rotationUntilNextBlock +=
+                                    distanceBetweenBlades + bladesWidth;
+                        }*/
+
+                    }
 
                 } finally {
                     plane.getLock().unlock();

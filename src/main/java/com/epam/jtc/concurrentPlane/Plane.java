@@ -2,7 +2,10 @@ package com.epam.jtc.concurrentPlane;
 
 import com.epam.jtc.concurrentPlane.Output.ConsoleInfoOutput;
 import com.epam.jtc.concurrentPlane.Output.InfoOutput;
+import org.apache.log4j.Logger;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -14,21 +17,26 @@ public class Plane implements Runnable {
     private static final int DEFAULT_PROPELLER_BLADES_COUNT = 5;
     private static final int DEFAULT_PROPELLER_BLADE_WIDTH = 20;
     private static final int DEFAULT_FIRE_RATE = 1500;
+    private static Logger logger = Logger
+            .getLogger(Plane.class);
     private InfoOutput infoOutput = new ConsoleInfoOutput();
-
-    private volatile CountDownLatch synchronizer = new CountDownLatch(1);
+    private volatile List<CountDownLatch> synchronizers = new ArrayList<>();
     private volatile Lock lock = new ReentrantLock();
-
     private Propeller propeller;
-    private MachineGun machineGun;
+    private List<MachineGun> machineGuns = new ArrayList<>();
 
 
     public Plane(int propellerRotationSpeed, int propellerBladesCount,
-                 int propellerBladesWidth, int gunFireRate) {
+                 int propellerBladesWidth, int gunsCount, int gunsFireRate) {
 
         propeller = new Propeller(propellerRotationSpeed, propellerBladesCount,
                 propellerBladesWidth, this);
-        machineGun = new MachineGun(gunFireRate, this);
+
+        for (int i = 0; i < gunsCount; i++) {
+            synchronizers.add(new CountDownLatch(1));
+            machineGuns.add(new MachineGun(gunsFireRate, this,
+                    i * 360 / gunsCount));
+        }
 
 
     }
@@ -37,6 +45,7 @@ public class Plane implements Runnable {
 
         Plane plane = new Plane(DEFAULT_PROPELLER_ROTATION_SPEED,
                 DEFAULT_PROPELLER_BLADES_COUNT, DEFAULT_PROPELLER_BLADE_WIDTH,
+                2,
                 DEFAULT_FIRE_RATE);
 
         new Thread(plane).start();
@@ -47,12 +56,18 @@ public class Plane implements Runnable {
         return infoOutput;
     }
 
-    CountDownLatch getSynchronizer() {
-        return synchronizer;
+    public List<MachineGun> getMachineGuns() {
+        return machineGuns;
     }
 
-    void resetSynchronizer() {
-        synchronizer = new CountDownLatch(1);
+    List<CountDownLatch> getSynchronizers() {
+        return synchronizers;
+    }
+
+    void resetSynchronizer(CountDownLatch synchronizer) {
+        synchronizers
+                .set(synchronizers.indexOf(synchronizer),
+                        new CountDownLatch(1));
     }
 
     Lock getLock() {
@@ -63,10 +78,17 @@ public class Plane implements Runnable {
     public void run() {
 
         Thread propellerThread = new Thread(propeller);
-        Thread machineGunThread = new Thread(machineGun);
+        List<Thread> machineGunThreads = new ArrayList<>();
+
+        for (MachineGun gun : machineGuns) {
+            machineGunThreads.add(new Thread(gun));
+        }
 
         propellerThread.start();
-        machineGunThread.start();
+
+        for (Thread gunThread : machineGunThreads) {
+            gunThread.start();
+        }
 
         try {
             Thread.sleep(APPLICATION_WORK_TIME);
@@ -74,7 +96,9 @@ public class Plane implements Runnable {
             Thread.currentThread().interrupt();
         } finally {
             propellerThread.interrupt();
-            machineGunThread.interrupt();
+            for (Thread gunThread : machineGunThreads) {
+                gunThread.interrupt();
+            }
         }
 
     }

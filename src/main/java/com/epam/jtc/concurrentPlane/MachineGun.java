@@ -6,11 +6,17 @@ public class MachineGun implements Runnable {
     private final static String SHOT = "Gun shot! ";
 
     private int fireRate;
+    private int positionRelativeToPropeller;
     private Plane plane;
 
-    MachineGun(int fireRate, Plane plane) {
+    MachineGun(int fireRate, Plane plane, int positionRelativeToPropeller) {
         this.fireRate = fireRate;
         this.plane = plane;
+        this.positionRelativeToPropeller = positionRelativeToPropeller;
+    }
+
+    public int getPositionRelativeToPropeller() {
+        return positionRelativeToPropeller;
     }
 
     @Override
@@ -22,25 +28,23 @@ public class MachineGun implements Runnable {
         while (!Thread.currentThread().isInterrupted()) {
             try {
 
-                while (plane.getSynchronizer().getCount() > 0 ||
+
+                while (plane.getSynchronizers()
+                        .get(plane.getMachineGuns().indexOf(this)).getCount() >
+                        0 ||
                         !plane.getLock().tryLock()) {
-                    //plane.getLock().tryLock();
                 }
 
-//                plane.getSynchronizer().await();
-//                plane.getLock().lock();
-
-                /*while (!plane.getLock().tryLock()) {
-                }*/
-                //   if (plane.getLock().tryLock()) {
-
                 try {
-                    //    plane.getSynchronizer().await();
 
 
-                    plane.getInfoOutput().showShot(
-                            String.valueOf(
-                                    plane.getSynchronizer().getCount()));
+                    plane.getInfoOutput()
+                            .showShot(plane.getMachineGuns().indexOf(this),
+                                    String.valueOf(
+                                            plane.getSynchronizers()
+                                                    .get(plane.getMachineGuns()
+                                                            .indexOf(this))
+                                                    .getCount()));
 
 
                 } finally {

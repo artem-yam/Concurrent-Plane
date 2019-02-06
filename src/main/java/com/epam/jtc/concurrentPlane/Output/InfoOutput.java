@@ -2,9 +2,9 @@ package com.epam.jtc.concurrentPlane.Output;
 
 public interface InfoOutput {
 
-    void showShot(String qwe);
+    void showShot(int gunIndex, String qwe);
 
-    void showCanShoot(boolean canShoot);
+    void showCanShoot(int gunIndex, boolean canShoot);
 
     void showPropellerBladesPositions(double... blades);
     
