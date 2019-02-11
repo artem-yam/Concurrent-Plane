@@ -3,8 +3,6 @@ package com.epam.jtc.concurrentPlane;
 
 public class MachineGun implements Runnable {
 
-    private final static String SHOT = "Gun shot! ";
-
     private int fireRate;
     private int positionRelativeToPropeller;
     private Plane plane;
@@ -15,7 +13,7 @@ public class MachineGun implements Runnable {
         this.positionRelativeToPropeller = positionRelativeToPropeller;
     }
 
-    public int getPositionRelativeToPropeller() {
+    int getPositionRelativeToPropeller() {
         return positionRelativeToPropeller;
     }
 

@@ -2,15 +2,14 @@ package com.epam.jtc.concurrentPlane.Output;
 
 public class ConsoleInfoOutput implements InfoOutput {
 
-    private final static String SHOT = "%d gun  shot! %d  Synchronizer: %s \n";
-    private final static String SHOOTING_BLOCKED = "%d gun Shooting blocked \n";
-    private final static String SHOOTING_ALLOWED = "%d gun Shooting allowed \n";
-    private final static String BLADE_POSITION = "Blade %d in position = %f\n";
-    private int shotsCount = 1;
+    private static final String SHOT = "%d gun  shot! Synchronizer: %s \n";
+    private static final String SHOOTING_BLOCKED = "%d gun Shooting blocked \n";
+    private static final String SHOOTING_ALLOWED = "%d gun Can shoot \n";
+    private static final String BLADE_POSITION = "Blade %d in position = %f\n";
 
     @Override
     public void showShot(int gunIndex, String qwe) {
-        System.out.printf(SHOT, gunIndex, shotsCount++, qwe);
+        System.out.printf(SHOT, gunIndex, qwe);
         if (Integer.parseInt(qwe) > 0) {
             throw new IllegalArgumentException();
         }
@@ -21,7 +20,7 @@ public class ConsoleInfoOutput implements InfoOutput {
         if (canShoot) {
             System.out.printf(SHOOTING_ALLOWED, gunIndex);
         } else {
-            System.err.printf(SHOOTING_BLOCKED, gunIndex);
+            System.out.printf(SHOOTING_BLOCKED, gunIndex);
         }
     }
 
