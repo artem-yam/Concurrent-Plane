@@ -1,8 +1,7 @@
 package com.epam.jtc.concurrentPlane;
 
-import com.epam.jtc.concurrentPlane.Output.ConsoleInfoOutput;
-import com.epam.jtc.concurrentPlane.Output.InfoOutput;
-import org.apache.log4j.Logger;
+import com.epam.jtc.concurrentPlane.output.ConsoleInfoOutput;
+import com.epam.jtc.concurrentPlane.output.InfoOutput;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,11 +17,9 @@ public class Plane implements Runnable {
     private static final int DEFAULT_PROPELLER_BLADE_WIDTH = 20;
     private static final int DEFAULT_FIRE_RATE = 1500;
     private static final int GUNS_MAX_COUNT = 6;
-    private static Logger logger = Logger
-            .getLogger(Plane.class);
     private InfoOutput infoOutput = new ConsoleInfoOutput();
-    private /*volatile*/ List<CountDownLatch> synchronizers = new ArrayList<>();
-    private /*volatile*/ Lock lock = new ReentrantLock();
+    private List<CountDownLatch> synchronizers = new ArrayList<>();
+    private Lock lock = new ReentrantLock();
     private Propeller propeller;
     private List<MachineGun> machineGuns = new ArrayList<>();
 
@@ -51,7 +48,7 @@ public class Plane implements Runnable {
 
         Plane plane = new Plane(DEFAULT_PROPELLER_ROTATION_SPEED,
                 DEFAULT_PROPELLER_BLADES_COUNT, DEFAULT_PROPELLER_BLADE_WIDTH,
-                1,
+                3,
                 DEFAULT_FIRE_RATE);
 
         new Thread(plane).start();
@@ -62,7 +59,7 @@ public class Plane implements Runnable {
         return infoOutput;
     }
 
-    public List<MachineGun> getMachineGuns() {
+    List<MachineGun> getMachineGuns() {
         return machineGuns;
     }
 

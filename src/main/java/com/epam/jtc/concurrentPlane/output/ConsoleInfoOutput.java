@@ -1,4 +1,4 @@
-package com.epam.jtc.concurrentPlane.Output;
+package com.epam.jtc.concurrentPlane.output;
 
 public class ConsoleInfoOutput implements InfoOutput {
 
