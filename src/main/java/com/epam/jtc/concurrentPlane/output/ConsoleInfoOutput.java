@@ -7,10 +7,17 @@ public class ConsoleInfoOutput implements InfoOutput {
     private static final String SHOOTING_ALLOWED = "%d gun Can shoot \n";
     private static final String BLADE_POSITION = "Blade %d in position = %f\n";
 
+
+    private static final String PROPELLER_BLADES_COUNT_EXCESS =
+            "Propeller blades count excess: %d. " +
+                    "Propeller blades count will be set to %d.\n";
+    private static final String GUNS_COUNT_EXCESS =
+            "Max guns count excess: %d. Guns count will be set to %d.\n";
+
     @Override
     public void showShot(int gunIndex, String qwe) {
         System.out.printf(SHOT, gunIndex, qwe);
-        if (Integer.parseInt(qwe) > 0) {
+        if ("false".equals(qwe)) {
             throw new IllegalArgumentException();
         }
     }
@@ -22,6 +29,17 @@ public class ConsoleInfoOutput implements InfoOutput {
         } else {
             System.out.printf(SHOOTING_BLOCKED, gunIndex);
         }
+    }
+
+    @Override
+    public void showGunsCountExcess(int enteredCount, int maxCount) {
+        System.out.printf(GUNS_COUNT_EXCESS, enteredCount, maxCount);
+    }
+
+    @Override
+    public void showPropellerBladesCountExcess(int enteredCount, int maxCount) {
+        System.out
+                .printf(PROPELLER_BLADES_COUNT_EXCESS, enteredCount, maxCount);
     }
 
     @Override

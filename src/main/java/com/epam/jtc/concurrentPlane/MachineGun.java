@@ -5,11 +5,16 @@ public class MachineGun implements Runnable {
 
     private int fireRate;
     private int positionRelativeToPropeller;
-    private Plane plane;
+    private boolean canShoot = false;
+    private SynchronizingObject synchronizingObject;
 
-    MachineGun(int fireRate, Plane plane, int positionRelativeToPropeller) {
+    MachineGun(int fireRate,
+               SynchronizingObject synchronizingObject,
+               int positionRelativeToPropeller) {
         this.fireRate = fireRate;
-        this.plane = plane;
+
+        this.synchronizingObject = synchronizingObject;
+
         this.positionRelativeToPropeller = positionRelativeToPropeller;
     }
 
@@ -17,8 +22,17 @@ public class MachineGun implements Runnable {
         return positionRelativeToPropeller;
     }
 
+    public boolean isCanShoot() {
+        return canShoot;
+    }
+
+    public void setCanShoot(boolean canShoot) {
+        this.canShoot = canShoot;
+    }
+
     @Override
     public void run() {
+
         double sleepTime = (double) 60000 / fireRate;
         long millis = (long) sleepTime;
         int nanos = (int) ((sleepTime - millis) * 1000000);
@@ -27,27 +41,30 @@ public class MachineGun implements Runnable {
             try {
 
 
-                while (plane.getSynchronizers()
-                        .get(plane.getMachineGuns().indexOf(this)).getCount() >
-                        0 ||
+               /* while (!plane.getCanGunsShoot()
+                        .get(plane.getMachineGuns().indexOf(this)) ||
                         !plane.getLock().tryLock()) {
+                }*/
+/*
+
+                while (!canShoot ||
+                        !synchronizingObject.getLock().tryLock()) {
                 }
+
 
                 try {
 
-
-                    plane.getInfoOutput()
-                            .showShot(plane.getMachineGuns().indexOf(this),
-                                    String.valueOf(
-                                            plane.getSynchronizers()
-                                                    .get(plane.getMachineGuns()
-                                                            .indexOf(this))
-                                                    .getCount()));
-
+                    synchronizingObject.getInfoOutput()
+                            .showShot(
+                                    synchronizingObject.getGuns().indexOf(this),
+                                    String.valueOf(canShoot));
 
                 } finally {
-                    plane.getLock().unlock();
+                    synchronizingObject.getLock().unlock();
                 }
+*/
+
+                synchronizingObject.tryToShoot(this);
 
 
                 Thread.sleep(millis, nanos);

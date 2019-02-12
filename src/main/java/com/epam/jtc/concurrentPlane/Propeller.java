@@ -2,26 +2,39 @@ package com.epam.jtc.concurrentPlane;
 
 public class Propeller implements Runnable {
 
+
+    private static final int FULL_CIRCLE = 360;
+    private static final int HALF_CIRCLE = 360 / 2;
+
     private final int bladesCount;
     private final int bladesWidth;
     private final double distanceBetweenBlades;
     private int rotationSpeed;
-    private Plane plane;
+    private SynchronizingObject synchronizingObject;
 
     Propeller(int propellerRotationSpeed, int propellerBladesCount,
-              int propellerBladeWidth, Plane plane) {
+              int propellerBladeWidth,
+              SynchronizingObject synchronizingObject) {
         this.rotationSpeed = propellerRotationSpeed;
 
-        if (propellerBladesCount * propellerBladeWidth >= 180) {
-            this.bladesCount = 180 / propellerBladeWidth;
+        if (propellerBladesCount * propellerBladeWidth >= HALF_CIRCLE) {
+            this.bladesCount = HALF_CIRCLE / propellerBladeWidth;
+
+            synchronizingObject.getInfoOutput()
+                    .showPropellerBladesCountExcess(propellerBladesCount,
+                            bladesCount);
+
+
         } else {
             this.bladesCount = propellerBladesCount;
         }
 
         this.bladesWidth = propellerBladeWidth;
 
-        this.distanceBetweenBlades = (double) 360 / bladesCount - bladesWidth;
-        this.plane = plane;
+        this.distanceBetweenBlades =
+                (double) FULL_CIRCLE / bladesCount - bladesWidth;
+
+        this.synchronizingObject = synchronizingObject;
     }
 
 
@@ -42,40 +55,13 @@ public class Propeller implements Runnable {
 
             newPositions[i] = bladesPositions[i] + rotationStep;
 
-            if (newPositions[i] >= 360) {
-                newPositions[i] -= 360;
+            if (newPositions[i] >= FULL_CIRCLE) {
+                newPositions[i] -= FULL_CIRCLE;
             }
 
         }
 
         return newPositions;
-    }
-
-
-    private boolean checkMachineGunShotOpportunity(MachineGun gun,
-                                                   double[] bladesPositions) {
-        boolean canShoot = true;
-
-        for (double blade : bladesPositions) {
-            if (gun.getPositionRelativeToPropeller() >= blade &&
-                    gun.getPositionRelativeToPropeller() <=
-                            blade + bladesWidth) {
-                plane.resetSynchronizer(plane.getSynchronizers()
-                        .get(plane.getMachineGuns().indexOf(gun)));
-
-                canShoot = false;
-
-                break;
-            }
-        }
-
-        if (canShoot) {
-            plane.getSynchronizers()
-                    .get(plane.getMachineGuns().indexOf(gun)).countDown();
-
-        }
-
-        return canShoot;
     }
 
     @Override
@@ -96,24 +82,9 @@ public class Propeller implements Runnable {
                 /*plane.getInfoOutput()
                         .showPropellerBladesPositions(bladesPositions);*/
 
-                plane.getLock().lock();
-                try {
-
-                    for (MachineGun gun : plane.getMachineGuns()) {
-
-
-                        plane.getInfoOutput()
-                                .showCanShoot(
-                                        plane.getMachineGuns().indexOf(gun),
-                                        checkMachineGunShotOpportunity(gun,
-                                                bladesPositions));
-
-
-                    }
-
-                } finally {
-                    plane.getLock().unlock();
-                }
+                synchronizingObject
+                        .checkMachineGunsShotOpportunity(bladesPositions,
+                                bladesWidth);
 
 
                 bladesPositions = updateBladesPosition(bladesPositions,
