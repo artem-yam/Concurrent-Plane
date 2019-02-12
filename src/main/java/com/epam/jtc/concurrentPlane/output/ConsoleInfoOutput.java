@@ -2,23 +2,24 @@ package com.epam.jtc.concurrentPlane.output;
 
 public class ConsoleInfoOutput implements InfoOutput {
 
-    private static final String SHOT = "%d gun  shot! Synchronizer: %s \n";
+    private static final String SHOT = "%d gun  shot!\n";
     private static final String SHOOTING_BLOCKED = "%d gun Shooting blocked \n";
     private static final String SHOOTING_ALLOWED = "%d gun Can shoot \n";
     private static final String BLADE_POSITION = "Blade %d in position = %f\n";
-
-
     private static final String PROPELLER_BLADES_COUNT_EXCESS =
             "Propeller blades count excess: %d. " +
                     "Propeller blades count will be set to %d.\n";
     private static final String GUNS_COUNT_EXCESS =
             "Max guns count excess: %d. Guns count will be set to %d.\n";
+    private static final String UNEXPECTED_SHOT =
+            "Something went wrong! Gun wasn't enabled to shoot!\n";
 
     @Override
-    public void showShot(int gunIndex, String qwe) {
-        System.out.printf(SHOT, gunIndex, qwe);
-        if ("false".equals(qwe)) {
-            throw new IllegalArgumentException();
+    public void showShot(int gunIndex, boolean canShoot) {
+        if (canShoot) {
+            System.out.printf(SHOT, gunIndex);
+        } else {
+            System.err.printf(UNEXPECTED_SHOT);
         }
     }
 
@@ -38,8 +39,8 @@ public class ConsoleInfoOutput implements InfoOutput {
 
     @Override
     public void showPropellerBladesCountExcess(int enteredCount, int maxCount) {
-        System.out
-                .printf(PROPELLER_BLADES_COUNT_EXCESS, enteredCount, maxCount);
+        System.out.printf(PROPELLER_BLADES_COUNT_EXCESS, enteredCount,
+                maxCount);
     }
 
     @Override

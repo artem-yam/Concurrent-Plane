@@ -5,7 +5,6 @@ import com.epam.jtc.concurrentPlane.output.InfoOutput;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class Plane implements Runnable {
@@ -17,30 +16,27 @@ public class Plane implements Runnable {
     private static final int DEFAULT_FIRE_RATE = 1500;
     private static final int DEFAULT_GUNS_COUNT = 3;
 
-
     private static final int APPLICATION_WORK_TIME = 1000;
     private static final int GUNS_MAX_COUNT = 6;
-    private InfoOutput infoOutput = new ConsoleInfoOutput();
-    //private List<Boolean> canGunsShoot = new ArrayList<>();
-    private Lock lock = new ReentrantLock();
+
     private Propeller propeller;
     private List<MachineGun> machineGuns = new ArrayList<>();
 
 
     public Plane(int propellerRotationSpeed, int propellerBladesCount,
-                 int propellerBladesWidth, int gunsCount, int gunsFireRate) {
+            int propellerBladesWidth, int gunsCount, int gunsFireRate) {
+        InfoOutput infoOutput = new ConsoleInfoOutput();
 
         if (gunsCount > GUNS_MAX_COUNT) {
             infoOutput.showGunsCountExcess(gunsCount, GUNS_MAX_COUNT);
             gunsCount = GUNS_MAX_COUNT;
         }
 
-        SynchronizingObject synchronizingObject =
-                new SynchronizingObject(lock, machineGuns, infoOutput);
+        SynchronizingObject synchronizingObject = new SynchronizingObject(
+                new ReentrantLock(), machineGuns, infoOutput);
 
 
         for (int i = 0; i < gunsCount; i++) {
-            //canGunsShoot.add(false);
             machineGuns.add(new MachineGun(gunsFireRate, synchronizingObject,
                     i * 360 / gunsCount));
         }

@@ -13,16 +13,14 @@ public class Propeller implements Runnable {
     private SynchronizingObject synchronizingObject;
 
     Propeller(int propellerRotationSpeed, int propellerBladesCount,
-              int propellerBladeWidth,
-              SynchronizingObject synchronizingObject) {
+            int propellerBladeWidth, SynchronizingObject synchronizingObject) {
         this.rotationSpeed = propellerRotationSpeed;
 
         if (propellerBladesCount * propellerBladeWidth >= HALF_CIRCLE) {
             this.bladesCount = HALF_CIRCLE / propellerBladeWidth;
 
-            synchronizingObject.getInfoOutput()
-                    .showPropellerBladesCountExcess(propellerBladesCount,
-                            bladesCount);
+            synchronizingObject.getInfoOutput().showPropellerBladesCountExcess(
+                    propellerBladesCount, bladesCount);
 
 
         } else {
@@ -48,7 +46,7 @@ public class Propeller implements Runnable {
     }
 
     private double[] updateBladesPosition(double[] bladesPositions,
-                                          double rotationStep) {
+            double rotationStep) {
         double[] newPositions = new double[bladesPositions.length];
 
         for (int i = 0; i < bladesPositions.length; i++) {
@@ -76,15 +74,14 @@ public class Propeller implements Runnable {
         int nanos = (int) ((sleepTime - millis) * 1000000);
 
 
-        while (!Thread.currentThread()
-                .isInterrupted()) {
+        while (!Thread.currentThread().isInterrupted()) {
             try {
                 /*plane.getInfoOutput()
                         .showPropellerBladesPositions(bladesPositions);*/
 
-                synchronizingObject
-                        .checkMachineGunsShotOpportunity(bladesPositions,
-                                bladesWidth);
+
+                synchronizingObject.checkMachineGunsShotOpportunity(
+                        bladesPositions, bladesWidth);
 
 
                 bladesPositions = updateBladesPosition(bladesPositions,

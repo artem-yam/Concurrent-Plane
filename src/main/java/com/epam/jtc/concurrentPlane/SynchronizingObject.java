@@ -5,40 +5,33 @@ import com.epam.jtc.concurrentPlane.output.InfoOutput;
 import java.util.List;
 import java.util.concurrent.locks.Lock;
 
-public class SynchronizingObject {
+class SynchronizingObject {
 
-    private Lock lock;
+    private volatile Lock lock;
     private List<MachineGun> guns;
     private InfoOutput infoOutput;
 
 
-    public SynchronizingObject(Lock lock, List<MachineGun> guns,
-                               InfoOutput infoOutput) {
+    SynchronizingObject(Lock lock, List<MachineGun> guns,
+            InfoOutput infoOutput) {
         this.lock = lock;
         this.guns = guns;
         this.infoOutput = infoOutput;
     }
 
-
-    public Lock getLock() {
-        return lock;
-    }
-
-    public List<MachineGun> getGuns() {
-        return guns;
-    }
-
-    public InfoOutput getInfoOutput() {
+    InfoOutput getInfoOutput() {
         return infoOutput;
     }
 
-    public void checkMachineGunsShotOpportunity(double[] bladesPositions,
-                                                int bladesWidth) {
+    void checkMachineGunsShotOpportunity(double[] bladesPositions,
+            int bladesWidth) {
+
         lock.lock();
 
         try {
 
             for (MachineGun gun : guns) {
+
 
                 boolean canShoot = true;
 
@@ -47,40 +40,36 @@ public class SynchronizingObject {
                             gun.getPositionRelativeToPropeller() <=
                                     blade + bladesWidth) {
 
-                        gun.setCanShoot(false);
-
-                        canShoot = gun.isCanShoot();
+                        canShoot = false;
 
                         break;
                     }
                 }
 
-                if (canShoot) {
-                    gun.setCanShoot(true);
-                }
+                gun.setCanShoot(canShoot);
 
-                infoOutput.showCanShoot(
-                        guns.indexOf(gun), gun.isCanShoot());
+                infoOutput.showCanShoot(guns.indexOf(gun), gun.isCanShoot());
+
+
             }
-
         } finally {
             lock.unlock();
         }
 
     }
 
-    public void tryToShoot(MachineGun gun) {
+    void tryToShoot(MachineGun gun) {
 
-       /* while (!gun.isCanShoot() ||
-                !lock.tryLock()) {
-        }*/
+        while (!gun.isCanShoot() || !lock.tryLock()) {
+            if (Thread.currentThread().isInterrupted()) {
+                return;
+            }
+        }
 
-        lock.lock();
+
         try {
 
-            infoOutput.showShot(
-                    guns.indexOf(gun),
-                    String.valueOf(gun.isCanShoot()));
+            infoOutput.showShot(guns.indexOf(gun), gun.isCanShoot());
 
         } finally {
             lock.unlock();
