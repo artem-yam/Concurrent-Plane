@@ -7,13 +7,13 @@ import java.util.concurrent.locks.Lock;
 
 class SynchronizingObject {
 
-    private volatile Lock lock;
+    private Lock lock;
     private List<MachineGun> guns;
     private InfoOutput infoOutput;
 
 
     SynchronizingObject(Lock lock, List<MachineGun> guns,
-            InfoOutput infoOutput) {
+                        InfoOutput infoOutput) {
         this.lock = lock;
         this.guns = guns;
         this.infoOutput = infoOutput;
@@ -24,7 +24,7 @@ class SynchronizingObject {
     }
 
     void checkMachineGunsShotOpportunity(double[] bladesPositions,
-            int bladesWidth) {
+                                         int bladesWidth) {
 
         lock.lock();
 

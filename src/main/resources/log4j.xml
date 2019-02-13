@@ -4,9 +4,7 @@
 
     <appender name="CONSOLE-DEBUG" class="org.apache.log4j.ConsoleAppender">
         <param name="target" value="System.out"/>
-        <layout class="org.apache.log4j.PatternLayout">
-            <param name="ConversionPattern" value="%d{ISO8601} [%5p] %m at %l%n"/>
-        </layout>
+        <layout class="org.apache.log4j.SimpleLayout"/>
         <filter class="org.apache.log4j.varia.LevelRangeFilter">
             <param name="LevelMin" value="ALL"/>
             <param name="LevelMax" value="WARN"/>
@@ -15,25 +13,15 @@
 
     <appender name="CONSOLE-WARN" class="org.apache.log4j.ConsoleAppender">
         <param name="target" value="System.err"/>
-        <layout class="org.apache.log4j.PatternLayout">
-            <param name="ConversionPattern" value="%d{ISO8601} [%5p] %m at %l%n"/>
-        </layout>
+        <layout class="org.apache.log4j.SimpleLayout"/>
         <filter class="org.apache.log4j.varia.LevelRangeFilter">
             <param name="LevelMin" value="WARN"/>
         </filter>
     </appender>
 
-    <appender name="LOG-FILE-APPENDER" class="org.apache.log4j.FileAppender">
-        <param name="file" value="app.log"/>
-        <layout class="org.apache.log4j.PatternLayout">
-            <param name="ConversionPattern" value="%d{ISO8601} [%5p] %c %m at %l%n"/>
-        </layout>
-    </appender>
-
-
-    <category name="com.epam.jtc.concurrentPlane.Plane">
-        <priority value="debug"/>
+    <category name="com.epam.jtc.concurrentPlane.output.LoggerInfoOutput">
         <appender-ref ref="CONSOLE-DEBUG"/>
+        <appender-ref ref="CONSOLE-WARN"/>
     </category>
 
 </log4j:configuration>

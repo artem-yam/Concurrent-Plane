@@ -2,7 +2,7 @@ package com.epam.jtc.concurrentPlane.output;
 
 public class ConsoleInfoOutput implements InfoOutput {
 
-    private static final String SHOT = "%d gun  shot!\n";
+    private static final String SHOT = "%d gun shot!\n";
     private static final String SHOOTING_BLOCKED = "%d gun Shooting blocked \n";
     private static final String SHOOTING_ALLOWED = "%d gun Can shoot \n";
     private static final String BLADE_POSITION = "Blade %d in position = %f\n";

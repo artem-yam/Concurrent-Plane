@@ -3,13 +3,13 @@ package com.epam.jtc.concurrentPlane;
 
 public class MachineGun implements Runnable {
 
-    private int fireRate;
+    private final int fireRate;
     private int positionRelativeToPropeller;
-    private volatile boolean canShoot = false;
+    private boolean canShoot;
     private SynchronizingObject synchronizingObject;
 
     MachineGun(int fireRate, SynchronizingObject synchronizingObject,
-            int positionRelativeToPropeller) {
+               int positionRelativeToPropeller) {
         this.fireRate = fireRate;
 
         this.synchronizingObject = synchronizingObject;

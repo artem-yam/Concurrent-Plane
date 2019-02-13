@@ -1,7 +1,7 @@
 package com.epam.jtc.concurrentPlane;
 
-import com.epam.jtc.concurrentPlane.output.ConsoleInfoOutput;
 import com.epam.jtc.concurrentPlane.output.InfoOutput;
+import com.epam.jtc.concurrentPlane.output.LoggerInfoOutput;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,17 +20,18 @@ public class Plane implements Runnable {
     private static final int GUNS_MAX_COUNT = 6;
 
     private Propeller propeller;
-    private List<MachineGun> machineGuns = new ArrayList<>();
+    private List<MachineGun> machineGuns;
 
 
     public Plane(int propellerRotationSpeed, int propellerBladesCount,
-            int propellerBladesWidth, int gunsCount, int gunsFireRate) {
-        InfoOutput infoOutput = new ConsoleInfoOutput();
+                 int propellerBladesWidth, int gunsCount, int gunsFireRate) {
+        InfoOutput infoOutput = new LoggerInfoOutput();
 
         if (gunsCount > GUNS_MAX_COUNT) {
             infoOutput.showGunsCountExcess(gunsCount, GUNS_MAX_COUNT);
             gunsCount = GUNS_MAX_COUNT;
         }
+        machineGuns = new ArrayList<>(gunsCount);
 
         SynchronizingObject synchronizingObject = new SynchronizingObject(
                 new ReentrantLock(), machineGuns, infoOutput);
@@ -57,35 +58,17 @@ public class Plane implements Runnable {
 
     }
 
-    /*InfoOutput getInfoOutput() {
-        return infoOutput;
-    }
-
-    List<MachineGun> getMachineGuns() {
-        return machineGuns;
-    }
-
-    Lock getLock() {
-        return lock;
-    }*/
-
     @Override
     public void run() {
 
         try {
             Thread propellerThread = new Thread(propeller);
-            propellerThread.setName("Propeller");
 
+            List<Thread> machineGunThreads =
+                    new ArrayList<>(machineGuns.size());
 
-            List<Thread> machineGunThreads = new ArrayList<>();
-
-            int i = 1;
             for (MachineGun gun : machineGuns) {
-
-                Thread gunThread = new Thread(gun);
-                gunThread.setName("Gun " + i++);
-
-                machineGunThreads.add(gunThread);
+                machineGunThreads.add(new Thread(gun));
             }
 
             propellerThread.start();

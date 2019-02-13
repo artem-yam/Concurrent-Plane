@@ -13,7 +13,8 @@ public class Propeller implements Runnable {
     private SynchronizingObject synchronizingObject;
 
     Propeller(int propellerRotationSpeed, int propellerBladesCount,
-            int propellerBladeWidth, SynchronizingObject synchronizingObject) {
+              int propellerBladeWidth,
+              SynchronizingObject synchronizingObject) {
         this.rotationSpeed = propellerRotationSpeed;
 
         if (propellerBladesCount * propellerBladeWidth >= HALF_CIRCLE) {
@@ -46,7 +47,7 @@ public class Propeller implements Runnable {
     }
 
     private double[] updateBladesPosition(double[] bladesPositions,
-            double rotationStep) {
+                                          double rotationStep) {
         double[] newPositions = new double[bladesPositions.length];
 
         for (int i = 0; i < bladesPositions.length; i++) {
