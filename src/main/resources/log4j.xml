@@ -7,7 +7,7 @@
         <layout class="org.apache.log4j.SimpleLayout"/>
         <filter class="org.apache.log4j.varia.LevelRangeFilter">
             <param name="LevelMin" value="ALL"/>
-            <param name="LevelMax" value="WARN"/>
+            <param name="LevelMax" value="INFO"/>
         </filter>
     </appender>
 

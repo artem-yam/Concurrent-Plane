@@ -6,10 +6,7 @@ public interface InfoOutput {
 
     void showCanShoot(int gunIndex, boolean canShoot);
 
-    void showGunsCountExcess(int enteredCount, int maxCount);
+    void showWrongGunsCount(int enteredCount, int maxCount);
 
     void showPropellerBladesCountExcess(int enteredCount, int maxCount);
-
-    void showPropellerBladesPositions(double... blades);
-
 }
