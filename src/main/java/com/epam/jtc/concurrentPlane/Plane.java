@@ -11,6 +11,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 public class Plane implements Runnable {
 
     private static final int FULL_CIRCLE = 360;
+    private static final int ZERO = 0;
 
     private static final int PROPELLER_ROTATION_SPEED = 1200;
     private static final int PROPELLER_BLADES_COUNT = 5;
@@ -20,7 +21,6 @@ public class Plane implements Runnable {
 
     private static final int APPLICATION_WORK_TIME = 1000;
     private static final int GUNS_MAX_COUNT = 6;
-    private static final int GUNS_MIN_COUNT = 1;
 
     private Propeller propeller;
     private List<MachineGun> machineGuns;
@@ -30,18 +30,22 @@ public class Plane implements Runnable {
                  int propellerBladesWidth, int gunsCount, int gunsFireRate) {
         InfoOutput infoOutput = new LoggerInfoOutput();
 
-        if (gunsCount < GUNS_MIN_COUNT) {
-            infoOutput.showWrongGunsCount(gunsCount, GUNS_MIN_COUNT);
-            gunsCount = GUNS_MIN_COUNT;
-        } else if (gunsCount > GUNS_MAX_COUNT) {
-            infoOutput.showWrongGunsCount(gunsCount, GUNS_MAX_COUNT);
+        if (gunsCount <= GUNS_MAX_COUNT) {
+            if (gunsCount <= ZERO) {
+                gunsCount = ZERO;
+                infoOutput.showZeroGunsWarning();
+            }
+        } else {
+            infoOutput.showWrongGunsCountWarning(gunsCount, GUNS_MAX_COUNT);
             gunsCount = GUNS_MAX_COUNT;
         }
 
         machineGuns = new ArrayList<>(gunsCount);
 
         Synchronizer equipmentSynchronizer = new Synchronizer(
-                new ReentrantReadWriteLock(), machineGuns, infoOutput);
+                new ReentrantReadWriteLock(), machineGuns, infoOutput
+                /*,
+                null*/);
 
         workTimeSynchronizer = new CountDownLatch(machineGuns.size() + 1);
 
@@ -56,6 +60,8 @@ public class Plane implements Runnable {
                 new Propeller(propellerRotationSpeed, propellerBladesCount,
                         propellerBladesWidth, equipmentSynchronizer,
                         workTimeSynchronizer);
+
+        // equipmentSynchronizer.setPropeller(propeller);
     }
 
     public static void main(String[] args) {

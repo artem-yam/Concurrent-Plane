@@ -7,11 +7,13 @@ public class MachineGun implements Runnable {
     private static final double MINUTE_IN_MILLIS = 60000;
     private static final double MILLIS_IN_NANOS = 1000000;
 
+    private static final int SHOT_DURATION = 10;
+
     private static final int MIN_FIRE_RATE = 500;
 
     private final int fireRate;
     private int positionRelativeToPropeller;
-    private boolean canShoot;
+    private boolean isBlocked = true;
     private Synchronizer planeEquipmentSynchronizer;
     private CountDownLatch planeWorkTimeSynchronizer;
 
@@ -36,26 +38,61 @@ public class MachineGun implements Runnable {
         return positionRelativeToPropeller;
     }
 
-    public boolean isCanShoot() {
-        return canShoot;
+    public boolean isBlocked() {
+        return isBlocked;
     }
 
-    public void setCanShoot(boolean canShoot) {
-        this.canShoot = canShoot;
+    public void setBlocked(boolean blocked) {
+        isBlocked = blocked;
+    }
+
+    private void shoot() {
+        try {
+            planeEquipmentSynchronizer.getInfoOutput().showShot(
+                    planeEquipmentSynchronizer.getGuns().indexOf(this),
+                    isBlocked());
+
+            Thread.sleep(SHOT_DURATION);
+        } catch (InterruptedException interruptedException) {
+            Thread.currentThread().interrupt();
+        }
     }
 
     @Override
     public void run() {
 
-        double sleepTime = MINUTE_IN_MILLIS / fireRate;
+        double sleepTime = MINUTE_IN_MILLIS / fireRate - SHOT_DURATION;
         long millis = (long) sleepTime;
         int nanos = (int) ((sleepTime - millis) *
                 MILLIS_IN_NANOS);
 
         while (!Thread.currentThread().isInterrupted()) {
             try {
+                boolean canShoot = false;
 
-                planeEquipmentSynchronizer.tryToShoot(this);
+                do {
+                    //planeEquipmentSynchronizer.updateGunBlocked(this);
+                   /* isBlocked = planeEquipmentSynchronizer.getPropeller()
+                            .isGunShotBlocked(this);*/
+
+                    if (Thread.currentThread().isInterrupted()) {
+                        return;
+                    }
+                } while (!planeEquipmentSynchronizer.canShoot(this));
+
+                do {
+                    planeEquipmentSynchronizer.getShootingAccess();
+
+                    try {
+                        if (!isBlocked) {
+                            canShoot = true;
+                            shoot();
+                        }
+                    } finally {
+                        planeEquipmentSynchronizer.stopShooting();
+                    }
+
+                } while (!canShoot);
 
                 Thread.sleep(millis, nanos);
             } catch (InterruptedException interruptedException) {

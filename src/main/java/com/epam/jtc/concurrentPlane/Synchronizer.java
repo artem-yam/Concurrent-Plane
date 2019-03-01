@@ -7,58 +7,73 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 class Synchronizer {
 
-    private static final int SHOT_DURATION = 10;
-
     private ReentrantReadWriteLock lock;
+
+    //private Propeller propeller;
     private List<MachineGun> guns;
     private InfoOutput infoOutput;
 
     public Synchronizer(ReentrantReadWriteLock lock, List<MachineGun> guns,
-                        InfoOutput infoOutput) {
+                        InfoOutput infoOutput/*, Propeller propeller*/) {
         this.lock = lock;
         this.guns = guns;
         this.infoOutput = infoOutput;
+        // this.propeller = propeller;
     }
 
     public InfoOutput getInfoOutput() {
         return infoOutput;
     }
 
-    public void rotate(Propeller propeller) {
-        lock.writeLock().lock();
-        try {
-            propeller.updateBladesPosition();
-
-            checkGunsShotOpportunity(propeller);
-        } finally {
-            lock.writeLock().unlock();
-        }
+    /*public Propeller getPropeller() {
+        return propeller;
     }
 
-    private void checkGunsShotOpportunity(Propeller propeller) {
+    public void setPropeller(Propeller propeller) {
+        this.propeller = propeller;
+    }*/
+
+    public List<MachineGun> getGuns() {
+        return guns;
+    }
+
+    /*public void updateGunBlocked(MachineGun gun) {
+        gun.setBlocked(propeller
+                .isGunShotBlocked(gun));
+    }*/
+
+   /* public void updateGunsBlocked() {
         for (MachineGun gun : guns) {
-            gun.setCanShoot(propeller.checkGunShotAbility(gun));
-            infoOutput.showCanShoot(guns.indexOf(gun), gun.isCanShoot());
+            gun.setBlocked(propeller.isGunShotBlocked(gun));
+
+            infoOutput.showCanShoot(guns.indexOf(gun), gun.isBlocked());
         }
+    }*/
+
+  /*  public boolean canRotate() {
+        return lock.writeLock().tryLock();
+    }*/
+
+    public void getRotationAccess() {
+        lock.writeLock().lock();
     }
 
-    public void tryToShoot(MachineGun gun) {
-
-        while (!gun.isCanShoot() || !lock.readLock().tryLock()) {
-            if (Thread.currentThread().isInterrupted()) {
-                return;
-            }
-        }
-        try {
-            infoOutput.showShot(guns.indexOf(gun), gun.isCanShoot());
-
-            try {
-                Thread.sleep(SHOT_DURATION);
-            } catch (InterruptedException interruptedException) {
-                Thread.currentThread().interrupt();
-            }
-        } finally {
-            lock.readLock().unlock();
-        }
+    public void stopRotation() {
+        lock.writeLock().unlock();
     }
+
+    public boolean canShoot(MachineGun gun) {
+        //gun.setBlocked(propeller.isGunShotBlocked(gun));
+        return !gun.isBlocked() && lock.readLock().tryLock();
+    }
+
+
+    public void getShootingAccess() {
+        lock.readLock().lock();
+    }
+
+    public void stopShooting() {
+        lock.readLock().unlock();
+    }
+
 }

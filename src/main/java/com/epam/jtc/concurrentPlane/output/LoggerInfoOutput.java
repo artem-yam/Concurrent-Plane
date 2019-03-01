@@ -13,21 +13,24 @@ public class LoggerInfoOutput implements InfoOutput {
     private static final String WRONG_GUNS_COUNT =
             "Wrong guns count: %d. Guns count will be set to %d.";
     private static final String UNEXPECTED_SHOT =
-            "Something went wrong! Gun wasn't enabled to shoot!";
+            "Something went wrong! %d gun shot, but it wasn't enabled!";
+    private static final String ZERO_GUNS =
+            "Warning! No guns installed!";
     private final Logger logger = Logger.getLogger(this.getClass());
 
     @Override
-    public void showShot(int gunIndex, boolean canShoot) {
-        if (canShoot) {
+    public void showShot(int gunIndex, boolean isBlocked) {
+       // showCanShoot(gunIndex, isBlocked);
+        if (!isBlocked) {
             logger.info(String.format(SHOT, gunIndex));
         } else {
-            logger.error(UNEXPECTED_SHOT);
+            logger.error(String.format(UNEXPECTED_SHOT, gunIndex));
         }
     }
 
     @Override
-    public void showCanShoot(int gunIndex, boolean canShoot) {
-        if (canShoot) {
+    public void showCanShoot(int gunIndex, boolean isBlocked) {
+        if (!isBlocked) {
             logger.info(String.format(SHOOTING_ALLOWED, gunIndex));
         } else {
             logger.info(String.format(SHOOTING_BLOCKED, gunIndex));
@@ -35,7 +38,7 @@ public class LoggerInfoOutput implements InfoOutput {
     }
 
     @Override
-    public void showWrongGunsCount(int enteredCount, int newCount) {
+    public void showWrongGunsCountWarning(int enteredCount, int newCount) {
         logger.warn(String.format(WRONG_GUNS_COUNT, enteredCount, newCount));
     }
 
@@ -43,5 +46,10 @@ public class LoggerInfoOutput implements InfoOutput {
     public void showPropellerBladesCountExcess(int enteredCount, int maxCount) {
         logger.warn(String.format(PROPELLER_BLADES_COUNT_EXCESS, enteredCount,
                 maxCount));
+    }
+
+    @Override
+    public void showZeroGunsWarning() {
+        logger.warn(ZERO_GUNS);
     }
 }

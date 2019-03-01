@@ -75,7 +75,7 @@ public class Propeller implements Runnable {
         }
     }
 
-    public void updateBladesPosition() {
+    public void updateBladesPositions() {
         for (int i = 0; i < bladesPositions.length; i++) {
 
             bladesPositions[i] = bladesPositions[i] + rotationStep;
@@ -86,19 +86,32 @@ public class Propeller implements Runnable {
         }
     }
 
-    public boolean checkGunShotAbility(MachineGun gun) {
-        boolean canShoot = true;
+    public boolean isGunShotBlocked(MachineGun gun) {
+        boolean isBlocked = false;
 
         for (double blade : bladesPositions) {
             if (gun.getPositionRelativeToPropeller() >= blade &&
                     gun.getPositionRelativeToPropeller() <=
                             blade + bladesWidth) {
-                canShoot = false;
+                isBlocked = true;
                 break;
             }
+
         }
 
-        return canShoot;
+        return isBlocked;
+    }
+
+    private void updateGunsBlocked() {
+        for (MachineGun gun : planeEquipmentSynchronizer
+                .getGuns()) {
+            gun.setBlocked(isGunShotBlocked(gun));
+
+            planeEquipmentSynchronizer.getInfoOutput().showCanShoot(
+                    planeEquipmentSynchronizer.getGuns()
+                            .indexOf(gun),
+                    gun.isBlocked());
+        }
     }
 
     @Override
@@ -110,9 +123,28 @@ public class Propeller implements Runnable {
         int nanos = (int) ((sleepTime - millis) *
                 MILLIS_IN_NANOS);
 
+        updateGunsBlocked();
+
         while (!Thread.currentThread().isInterrupted()) {
             try {
-                planeEquipmentSynchronizer.rotate(this);
+
+               /* while (!planeEquipmentSynchronizer.canRotate()) {
+                    if (Thread.currentThread().isInterrupted()) {
+                        return;
+                    }
+                }*/
+
+                planeEquipmentSynchronizer.getRotationAccess();
+
+                try {
+                    updateBladesPositions();
+
+                    updateGunsBlocked();
+
+                    //planeEquipmentSynchronizer.updateGunsBlocked();
+                } finally {
+                    planeEquipmentSynchronizer.stopRotation();
+                }
 
                 Thread.sleep(millis, nanos);
             } catch (InterruptedException interruptedException) {
