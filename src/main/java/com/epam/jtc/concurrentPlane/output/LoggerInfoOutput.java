@@ -14,13 +14,11 @@ public class LoggerInfoOutput implements InfoOutput {
             "Wrong guns count: %d. Guns count will be set to %d.";
     private static final String UNEXPECTED_SHOT =
             "Something went wrong! %d gun shot, but it wasn't enabled!";
-    private static final String ZERO_GUNS =
-            "Warning! No guns installed!";
+    private static final String ZERO_GUNS = "Warning! No guns installed!";
     private final Logger logger = Logger.getLogger(this.getClass());
 
     @Override
     public void showShot(int gunIndex, boolean isBlocked) {
-       // showCanShoot(gunIndex, isBlocked);
         if (!isBlocked) {
             logger.info(String.format(SHOT, gunIndex));
         } else {

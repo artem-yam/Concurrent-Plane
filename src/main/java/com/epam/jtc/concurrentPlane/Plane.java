@@ -6,7 +6,6 @@ import com.epam.jtc.concurrentPlane.output.LoggerInfoOutput;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class Plane implements Runnable {
 
@@ -27,7 +26,7 @@ public class Plane implements Runnable {
     private CountDownLatch workTimeSynchronizer;
 
     public Plane(int propellerRotationSpeed, int propellerBladesCount,
-                 int propellerBladesWidth, int gunsCount, int gunsFireRate) {
+            int propellerBladesWidth, int gunsCount, int gunsFireRate) {
         InfoOutput infoOutput = new LoggerInfoOutput();
 
         if (gunsCount <= GUNS_MAX_COUNT) {
@@ -42,32 +41,27 @@ public class Plane implements Runnable {
 
         machineGuns = new ArrayList<>(gunsCount);
 
-        Synchronizer equipmentSynchronizer = new Synchronizer(
-                new ReentrantReadWriteLock(), machineGuns, infoOutput
-                /*,
-                null*/);
+        Synchronizer equipmentSynchronizer = new Synchronizer(null,
+                machineGuns);
 
         workTimeSynchronizer = new CountDownLatch(machineGuns.size() + 1);
 
         for (int i = 0; i < gunsCount; i++) {
-            machineGuns
-                    .add(new MachineGun(gunsFireRate, equipmentSynchronizer,
-                            i * FULL_CIRCLE / gunsCount,
-                            workTimeSynchronizer));
+            machineGuns.add(new MachineGun(gunsFireRate, equipmentSynchronizer,
+                    i * FULL_CIRCLE / gunsCount, workTimeSynchronizer,
+                    infoOutput));
         }
 
-        propeller =
-                new Propeller(propellerRotationSpeed, propellerBladesCount,
-                        propellerBladesWidth, equipmentSynchronizer,
-                        workTimeSynchronizer);
+        propeller = new Propeller(propellerRotationSpeed, propellerBladesCount,
+                propellerBladesWidth, equipmentSynchronizer,
+                workTimeSynchronizer, infoOutput);
 
-        // equipmentSynchronizer.setPropeller(propeller);
+        equipmentSynchronizer.setPropeller(propeller);
     }
 
     public static void main(String[] args) {
-        new Plane(PROPELLER_ROTATION_SPEED,
-                PROPELLER_BLADES_COUNT, PROPELLER_BLADE_WIDTH,
-                GUNS_COUNT, FIRE_RATE).launch();
+        new Plane(PROPELLER_ROTATION_SPEED, PROPELLER_BLADES_COUNT,
+                PROPELLER_BLADE_WIDTH, GUNS_COUNT, FIRE_RATE).launch();
     }
 
     public void launch() {
@@ -79,8 +73,7 @@ public class Plane implements Runnable {
 
         Thread propellerThread = new Thread(propeller);
 
-        List<Thread> machineGunThreads =
-                new ArrayList<>(machineGuns.size());
+        List<Thread> machineGunThreads = new ArrayList<>(machineGuns.size());
 
         for (MachineGun gun : machineGuns) {
             Thread gunsThread = new Thread(gun);

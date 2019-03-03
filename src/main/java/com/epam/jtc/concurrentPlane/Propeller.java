@@ -1,5 +1,7 @@
 package com.epam.jtc.concurrentPlane;
 
+import com.epam.jtc.concurrentPlane.output.InfoOutput;
+
 import java.util.concurrent.CountDownLatch;
 
 public class Propeller implements Runnable {
@@ -21,15 +23,17 @@ public class Propeller implements Runnable {
     private int rotationSpeed;
     private Synchronizer planeEquipmentSynchronizer;
     private CountDownLatch planeWorkTimeSynchronizer;
+    private InfoOutput infoOutput;
 
     private double rotationStep;
     private double[] bladesPositions;
 
     public Propeller(int propellerRotationSpeed, int propellerBladesCount,
-                     int propellerBladeWidth,
-                     Synchronizer planeEquipmentSynchronizer,
-                     CountDownLatch planeWorkTimeSynchronizer) {
+            int propellerBladeWidth, Synchronizer planeEquipmentSynchronizer,
+            CountDownLatch planeWorkTimeSynchronizer, InfoOutput infoOutput) {
         this.planeEquipmentSynchronizer = planeEquipmentSynchronizer;
+        this.planeWorkTimeSynchronizer = planeWorkTimeSynchronizer;
+        this.infoOutput = infoOutput;
 
         if (propellerRotationSpeed < MIN_ROTATION_SPEED) {
             propellerRotationSpeed = MIN_ROTATION_SPEED;
@@ -43,15 +47,13 @@ public class Propeller implements Runnable {
             propellerBladeWidth = MIN_BLADE_WIDTH;
         }
 
-        if (propellerBladesCount * propellerBladeWidth >= HALF_CIRCLE) {
+        if (propellerBladesCount * propellerBladeWidth < HALF_CIRCLE) {
+            this.bladesCount = propellerBladesCount;
+        } else {
             this.bladesCount = HALF_CIRCLE / propellerBladeWidth;
 
-            planeEquipmentSynchronizer.getInfoOutput()
-                    .showPropellerBladesCountExcess(
-                            propellerBladesCount, bladesCount);
-
-        } else {
-            this.bladesCount = propellerBladesCount;
+            infoOutput.showPropellerBladesCountExcess(propellerBladesCount,
+                    bladesCount);
         }
 
         this.bladesWidth = propellerBladeWidth;
@@ -64,7 +66,14 @@ public class Propeller implements Runnable {
         rotationStep = bladesWidth * ROTATION_STEP_MULTIPLIER;
         getBladesStartPositions();
 
-        this.planeWorkTimeSynchronizer = planeWorkTimeSynchronizer;
+    }
+
+    public int getBladesWidth() {
+        return bladesWidth;
+    }
+
+    public double[] getBladesPositions() {
+        return bladesPositions;
     }
 
     private void getBladesStartPositions() {
@@ -86,73 +95,32 @@ public class Propeller implements Runnable {
         }
     }
 
-    public boolean isGunShotBlocked(MachineGun gun) {
-        boolean isBlocked = false;
-
-        for (double blade : bladesPositions) {
-            if (gun.getPositionRelativeToPropeller() >= blade &&
-                    gun.getPositionRelativeToPropeller() <=
-                            blade + bladesWidth) {
-                isBlocked = true;
-                break;
-            }
-
-        }
-
-        return isBlocked;
-    }
-
-    private void updateGunsBlocked() {
-        for (MachineGun gun : planeEquipmentSynchronizer
-                .getGuns()) {
-            gun.setBlocked(isGunShotBlocked(gun));
-
-            planeEquipmentSynchronizer.getInfoOutput().showCanShoot(
-                    planeEquipmentSynchronizer.getGuns()
-                            .indexOf(gun),
-                    gun.isBlocked());
-        }
-    }
-
     @Override
     public void run() {
+        try {
+            double sleepTime = MINUTE_IN_MILLIS * rotationStep /
+                    (FULL_CIRCLE * rotationSpeed);
+            long millis = (long) sleepTime;
+            int nanos = (int) ((sleepTime - millis) * MILLIS_IN_NANOS);
 
-        double sleepTime =
-                MINUTE_IN_MILLIS * rotationStep / (FULL_CIRCLE * rotationSpeed);
-        long millis = (long) sleepTime;
-        int nanos = (int) ((sleepTime - millis) *
-                MILLIS_IN_NANOS);
-
-        updateGunsBlocked();
-
-        while (!Thread.currentThread().isInterrupted()) {
-            try {
-
-               /* while (!planeEquipmentSynchronizer.canRotate()) {
-                    if (Thread.currentThread().isInterrupted()) {
-                        return;
-                    }
-                }*/
-
-                planeEquipmentSynchronizer.getRotationAccess();
-
+            while (!Thread.currentThread().isInterrupted()) {
                 try {
-                    updateBladesPositions();
+                    planeEquipmentSynchronizer.getRotationAccess();
 
-                    updateGunsBlocked();
+                    try {
+                        updateBladesPositions();
+                    } finally {
+                        planeEquipmentSynchronizer.stopRotation();
+                    }
 
-                    //planeEquipmentSynchronizer.updateGunsBlocked();
-                } finally {
-                    planeEquipmentSynchronizer.stopRotation();
+                    Thread.sleep(millis, nanos);
+                } catch (InterruptedException interruptedException) {
+                    Thread.currentThread().interrupt();
                 }
-
-                Thread.sleep(millis, nanos);
-            } catch (InterruptedException interruptedException) {
-                Thread.currentThread().interrupt();
             }
+        } finally {
+            planeWorkTimeSynchronizer.countDown();
         }
-
-        planeWorkTimeSynchronizer.countDown();
     }
 }
 

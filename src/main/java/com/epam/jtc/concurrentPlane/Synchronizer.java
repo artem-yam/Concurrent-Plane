@@ -1,7 +1,5 @@
 package com.epam.jtc.concurrentPlane;
 
-import com.epam.jtc.concurrentPlane.output.InfoOutput;
-
 import java.util.List;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -9,50 +7,23 @@ class Synchronizer {
 
     private ReentrantReadWriteLock lock;
 
-    //private Propeller propeller;
+    private Propeller propeller;
     private List<MachineGun> guns;
-    private InfoOutput infoOutput;
 
-    public Synchronizer(ReentrantReadWriteLock lock, List<MachineGun> guns,
-                        InfoOutput infoOutput/*, Propeller propeller*/) {
-        this.lock = lock;
+    public Synchronizer(Propeller propeller, List<MachineGun> guns) {
         this.guns = guns;
-        this.infoOutput = infoOutput;
-        // this.propeller = propeller;
-    }
+        this.propeller = propeller;
 
-    public InfoOutput getInfoOutput() {
-        return infoOutput;
-    }
-
-    /*public Propeller getPropeller() {
-        return propeller;
+        this.lock = new ReentrantReadWriteLock();
     }
 
     public void setPropeller(Propeller propeller) {
         this.propeller = propeller;
-    }*/
+    }
 
     public List<MachineGun> getGuns() {
         return guns;
     }
-
-    /*public void updateGunBlocked(MachineGun gun) {
-        gun.setBlocked(propeller
-                .isGunShotBlocked(gun));
-    }*/
-
-   /* public void updateGunsBlocked() {
-        for (MachineGun gun : guns) {
-            gun.setBlocked(propeller.isGunShotBlocked(gun));
-
-            infoOutput.showCanShoot(guns.indexOf(gun), gun.isBlocked());
-        }
-    }*/
-
-  /*  public boolean canRotate() {
-        return lock.writeLock().tryLock();
-    }*/
 
     public void getRotationAccess() {
         lock.writeLock().lock();
@@ -62,18 +33,27 @@ class Synchronizer {
         lock.writeLock().unlock();
     }
 
-    public boolean canShoot(MachineGun gun) {
-        //gun.setBlocked(propeller.isGunShotBlocked(gun));
-        return !gun.isBlocked() && lock.readLock().tryLock();
-    }
-
-
-    public void getShootingAccess() {
-        lock.readLock().lock();
+    public boolean canShoot(int gunPosition) {
+        return !isGunShotBlocked(gunPosition) && lock.readLock().tryLock();
     }
 
     public void stopShooting() {
         lock.readLock().unlock();
+    }
+
+    public boolean isGunShotBlocked(int gunPosition) {
+        boolean isBlocked = false;
+
+        for (double blade : propeller.getBladesPositions()) {
+            if (gunPosition >= blade &&
+                    gunPosition <= blade + propeller.getBladesWidth()) {
+                isBlocked = true;
+                break;
+            }
+
+        }
+
+        return isBlocked;
     }
 
 }
