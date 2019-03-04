@@ -29,8 +29,10 @@ public class Propeller implements Runnable {
     private double[] bladesPositions;
 
     public Propeller(int propellerRotationSpeed, int propellerBladesCount,
-            int propellerBladeWidth, Synchronizer planeEquipmentSynchronizer,
-            CountDownLatch planeWorkTimeSynchronizer, InfoOutput infoOutput) {
+                     int propellerBladeWidth,
+                     Synchronizer planeEquipmentSynchronizer,
+                     CountDownLatch planeWorkTimeSynchronizer,
+                     InfoOutput infoOutput) {
         this.planeEquipmentSynchronizer = planeEquipmentSynchronizer;
         this.planeWorkTimeSynchronizer = planeWorkTimeSynchronizer;
         this.infoOutput = infoOutput;
@@ -66,6 +68,11 @@ public class Propeller implements Runnable {
         rotationStep = bladesWidth * ROTATION_STEP_MULTIPLIER;
         getBladesStartPositions();
 
+    }
+
+    public void setPlaneEquipmentSynchronizer(
+            Synchronizer planeEquipmentSynchronizer) {
+        this.planeEquipmentSynchronizer = planeEquipmentSynchronizer;
     }
 
     public int getBladesWidth() {
@@ -108,12 +115,17 @@ public class Propeller implements Runnable {
                     planeEquipmentSynchronizer.getRotationAccess();
 
                     try {
+                        infoOutput.showRotation();
+
                         updateBladesPositions();
+
+                        Thread.sleep(millis, nanos);
+
+                        infoOutput.showRotationStop();
                     } finally {
                         planeEquipmentSynchronizer.stopRotation();
                     }
 
-                    Thread.sleep(millis, nanos);
                 } catch (InterruptedException interruptedException) {
                     Thread.currentThread().interrupt();
                 }

@@ -20,8 +20,9 @@ public class MachineGun implements Runnable {
     private InfoOutput infoOutput;
 
     public MachineGun(int fireRate, Synchronizer planeEquipmentSynchronizer,
-            int positionRelativeToPropeller,
-            CountDownLatch planeWorkTimeSynchronizer, InfoOutput infoOutput) {
+                      int positionRelativeToPropeller,
+                      CountDownLatch planeWorkTimeSynchronizer,
+                      InfoOutput infoOutput) {
         this.planeEquipmentSynchronizer = planeEquipmentSynchronizer;
         this.planeWorkTimeSynchronizer = planeWorkTimeSynchronizer;
         this.infoOutput = infoOutput;
@@ -34,6 +35,15 @@ public class MachineGun implements Runnable {
         this.positionRelativeToPropeller = positionRelativeToPropeller;
     }
 
+    public int getPositionRelativeToPropeller() {
+        return positionRelativeToPropeller;
+    }
+
+    public void setPlaneEquipmentSynchronizer(
+            Synchronizer planeEquipmentSynchronizer) {
+        this.planeEquipmentSynchronizer = planeEquipmentSynchronizer;
+    }
+
     private void shoot() {
         try {
             infoOutput.showShot(
@@ -42,6 +52,9 @@ public class MachineGun implements Runnable {
                             .isGunShotBlocked(positionRelativeToPropeller));
 
             Thread.sleep(SHOT_DURATION);
+
+            infoOutput.showShootingStop(
+                    planeEquipmentSynchronizer.getGuns().indexOf(this));
         } catch (InterruptedException interruptedException) {
             Thread.currentThread().interrupt();
         }
@@ -54,23 +67,45 @@ public class MachineGun implements Runnable {
             long millis = (long) sleepTime;
             int nanos = (int) ((sleepTime - millis) * MILLIS_IN_NANOS);
 
+            int gunIndex = planeEquipmentSynchronizer.getGuns()
+                    .indexOf(this);
+
             while (!Thread.currentThread().isInterrupted()) {
                 try {
-                    boolean canShoot = false;
+                    boolean canShoot =
+                            !planeEquipmentSynchronizer.isGunShotBlocked(
+                                    positionRelativeToPropeller);
 
-                    while (!canShoot) {
+                    if (!canShoot) {
+                        infoOutput.showCanShoot(
+                                gunIndex,
+                                false);
+
+                        planeEquipmentSynchronizer
+                                .resetLatch(gunIndex);
+                    }
+
+                    planeEquipmentSynchronizer
+                            .awaitLatch(gunIndex);
+
+                   /* while (!canShoot) {
                         if (Thread.currentThread().isInterrupted()) {
                             return;
                         }
-
                         canShoot = planeEquipmentSynchronizer.canShoot(
                                 positionRelativeToPropeller);
+                    }*/
 
-                        infoOutput.showCanShoot(
-                                planeEquipmentSynchronizer.getGuns()
-                                                          .indexOf(this),
-                                canShoot);
-                    }
+                  /*  planeEquipmentSynchronizer
+                            .shotLock(positionRelativeToPropeller);
+*/
+
+                    canShoot = !planeEquipmentSynchronizer.isGunShotBlocked(
+                            positionRelativeToPropeller);
+
+                    infoOutput.showCanShoot(
+                            gunIndex,
+                            canShoot);
 
                     try {
                         shoot();

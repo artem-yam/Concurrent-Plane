@@ -26,7 +26,7 @@ public class Plane implements Runnable {
     private CountDownLatch workTimeSynchronizer;
 
     public Plane(int propellerRotationSpeed, int propellerBladesCount,
-            int propellerBladesWidth, int gunsCount, int gunsFireRate) {
+                 int propellerBladesWidth, int gunsCount, int gunsFireRate) {
         InfoOutput infoOutput = new LoggerInfoOutput();
 
         if (gunsCount <= GUNS_MAX_COUNT) {
@@ -41,20 +41,25 @@ public class Plane implements Runnable {
 
         machineGuns = new ArrayList<>(gunsCount);
 
-        Synchronizer equipmentSynchronizer = new Synchronizer(null,
-                machineGuns);
-
         workTimeSynchronizer = new CountDownLatch(machineGuns.size() + 1);
 
         for (int i = 0; i < gunsCount; i++) {
-            machineGuns.add(new MachineGun(gunsFireRate, equipmentSynchronizer,
-                    i * FULL_CIRCLE / gunsCount, workTimeSynchronizer,
-                    infoOutput));
+            machineGuns.add(new MachineGun(gunsFireRate, null,
+                    i * FULL_CIRCLE / gunsCount,
+                    workTimeSynchronizer, infoOutput));
         }
 
         propeller = new Propeller(propellerRotationSpeed, propellerBladesCount,
-                propellerBladesWidth, equipmentSynchronizer,
+                propellerBladesWidth, null,
                 workTimeSynchronizer, infoOutput);
+
+        Synchronizer equipmentSynchronizer = new Synchronizer(propeller,
+                machineGuns);
+
+        propeller.setPlaneEquipmentSynchronizer(equipmentSynchronizer);
+        for (MachineGun gun : machineGuns) {
+            gun.setPlaneEquipmentSynchronizer(equipmentSynchronizer);
+        }
 
         equipmentSynchronizer.setPropeller(propeller);
     }

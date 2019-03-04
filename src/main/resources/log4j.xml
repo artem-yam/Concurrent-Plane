@@ -4,7 +4,9 @@
 
     <appender name="CONSOLE-DEBUG" class="org.apache.log4j.ConsoleAppender">
         <param name="target" value="System.out"/>
-        <layout class="org.apache.log4j.SimpleLayout"/>
+        <layout class="org.apache.log4j.PatternLayout">
+            <param name="ConversionPattern" value="%d %5p %m %n"/>
+        </layout>
         <filter class="org.apache.log4j.varia.LevelRangeFilter">
             <param name="LevelMin" value="ALL"/>
             <param name="LevelMax" value="INFO"/>
@@ -13,7 +15,9 @@
 
     <appender name="CONSOLE-WARN" class="org.apache.log4j.ConsoleAppender">
         <param name="target" value="System.err"/>
-        <layout class="org.apache.log4j.SimpleLayout"/>
+        <layout class="org.apache.log4j.PatternLayout">
+            <param name="ConversionPattern" value="%d %5p %m %n"/>
+        </layout>
         <filter class="org.apache.log4j.varia.LevelRangeFilter">
             <param name="LevelMin" value="WARN"/>
         </filter>
