@@ -80,25 +80,10 @@ public class MachineGun implements Runnable {
                         infoOutput.showCanShoot(
                                 gunIndex,
                                 false);
-
-                        planeEquipmentSynchronizer
-                                .resetLatch(gunIndex);
                     }
 
                     planeEquipmentSynchronizer
-                            .awaitLatch(gunIndex);
-
-                   /* while (!canShoot) {
-                        if (Thread.currentThread().isInterrupted()) {
-                            return;
-                        }
-                        canShoot = planeEquipmentSynchronizer.canShoot(
-                                positionRelativeToPropeller);
-                    }*/
-
-                  /*  planeEquipmentSynchronizer
                             .shotLock(positionRelativeToPropeller);
-*/
 
                     canShoot = !planeEquipmentSynchronizer.isGunShotBlocked(
                             positionRelativeToPropeller);

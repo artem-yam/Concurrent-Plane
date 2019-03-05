@@ -12,6 +12,7 @@ public class Propeller implements Runnable {
     private static final int FULL_CIRCLE = 360;
     private static final int HALF_CIRCLE = 360 / 2;
     private static final double ROTATION_STEP_MULTIPLIER = 0.5;
+    private static final int ROTATION_DURATION = 10;
 
     private static final int MIN_BLADES_COUNT = 3;
     private static final int MIN_BLADE_WIDTH = 20;
@@ -91,7 +92,21 @@ public class Propeller implements Runnable {
         }
     }
 
-    public void updateBladesPositions() {
+    private void rotate() {
+        try {
+            infoOutput.showRotation();
+
+            updateBladesPositions();
+
+            Thread.sleep(ROTATION_DURATION);
+
+            infoOutput.showRotationStop();
+        } catch (InterruptedException interruptedException) {
+            Thread.currentThread().interrupt();
+        }
+    }
+
+    private void updateBladesPositions() {
         for (int i = 0; i < bladesPositions.length; i++) {
 
             bladesPositions[i] = bladesPositions[i] + rotationStep;
@@ -115,17 +130,12 @@ public class Propeller implements Runnable {
                     planeEquipmentSynchronizer.getRotationAccess();
 
                     try {
-                        infoOutput.showRotation();
-
-                        updateBladesPositions();
-
-                        Thread.sleep(millis, nanos);
-
-                        infoOutput.showRotationStop();
+                        rotate();
                     } finally {
                         planeEquipmentSynchronizer.stopRotation();
                     }
 
+                    Thread.sleep(millis, nanos);
                 } catch (InterruptedException interruptedException) {
                     Thread.currentThread().interrupt();
                 }

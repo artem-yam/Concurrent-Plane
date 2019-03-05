@@ -77,11 +77,13 @@ public class Plane implements Runnable {
     public void run() {
 
         Thread propellerThread = new Thread(propeller);
+        propellerThread.setName(propeller.getClass().getSimpleName());
 
         List<Thread> machineGunThreads = new ArrayList<>(machineGuns.size());
 
         for (MachineGun gun : machineGuns) {
             Thread gunsThread = new Thread(gun);
+            gunsThread.setName(gun.getClass().getSimpleName());
 
             machineGunThreads.add(gunsThread);
             gunsThread.start();
