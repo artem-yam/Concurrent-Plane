@@ -11,6 +11,7 @@ public class Plane implements Runnable {
 
     private static final int FULL_CIRCLE = 360;
     private static final int ZERO = 0;
+    private static final String GUN_THREAD_NAME = "%d %s";
 
     private static final int PROPELLER_ROTATION_SPEED = 1200;
     private static final int PROPELLER_BLADES_COUNT = 5;
@@ -43,25 +44,23 @@ public class Plane implements Runnable {
 
         workTimeSynchronizer = new CountDownLatch(machineGuns.size() + 1);
 
+        Synchronizer equipmentSynchronizer = new Synchronizer(infoOutput);
+
         for (int i = 0; i < gunsCount; i++) {
-            machineGuns.add(new MachineGun(gunsFireRate, null,
+            machineGuns.add(new MachineGun(gunsFireRate, equipmentSynchronizer,
                     i * FULL_CIRCLE / gunsCount,
-                    workTimeSynchronizer, infoOutput));
+                    workTimeSynchronizer));
         }
 
         propeller = new Propeller(propellerRotationSpeed, propellerBladesCount,
-                propellerBladesWidth, null,
-                workTimeSynchronizer, infoOutput);
-
-        Synchronizer equipmentSynchronizer = new Synchronizer(propeller,
-                machineGuns);
+                propellerBladesWidth, equipmentSynchronizer,
+                workTimeSynchronizer);
 
         propeller.setPlaneEquipmentSynchronizer(equipmentSynchronizer);
         for (MachineGun gun : machineGuns) {
             gun.setPlaneEquipmentSynchronizer(equipmentSynchronizer);
         }
 
-        equipmentSynchronizer.setPropeller(propeller);
     }
 
     public static void main(String[] args) {
@@ -83,7 +82,9 @@ public class Plane implements Runnable {
 
         for (MachineGun gun : machineGuns) {
             Thread gunsThread = new Thread(gun);
-            gunsThread.setName(gun.getClass().getSimpleName());
+            gunsThread.setName(
+                    String.format(GUN_THREAD_NAME, machineGuns.indexOf(gun),
+                            gun.getClass().getSimpleName()));
 
             machineGunThreads.add(gunsThread);
             gunsThread.start();

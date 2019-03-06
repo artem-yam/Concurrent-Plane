@@ -1,7 +1,5 @@
 package com.epam.jtc.concurrentPlane;
 
-import com.epam.jtc.concurrentPlane.output.InfoOutput;
-
 import java.util.concurrent.CountDownLatch;
 
 public class MachineGun implements Runnable {
@@ -17,15 +15,12 @@ public class MachineGun implements Runnable {
     private int positionRelativeToPropeller;
     private Synchronizer planeEquipmentSynchronizer;
     private CountDownLatch planeWorkTimeSynchronizer;
-    private InfoOutput infoOutput;
 
     public MachineGun(int fireRate, Synchronizer planeEquipmentSynchronizer,
                       int positionRelativeToPropeller,
-                      CountDownLatch planeWorkTimeSynchronizer,
-                      InfoOutput infoOutput) {
+                      CountDownLatch planeWorkTimeSynchronizer) {
         this.planeEquipmentSynchronizer = planeEquipmentSynchronizer;
         this.planeWorkTimeSynchronizer = planeWorkTimeSynchronizer;
-        this.infoOutput = infoOutput;
 
         if (fireRate < MIN_FIRE_RATE) {
             fireRate = MIN_FIRE_RATE;
@@ -35,10 +30,6 @@ public class MachineGun implements Runnable {
         this.positionRelativeToPropeller = positionRelativeToPropeller;
     }
 
-    public int getPositionRelativeToPropeller() {
-        return positionRelativeToPropeller;
-    }
-
     public void setPlaneEquipmentSynchronizer(
             Synchronizer planeEquipmentSynchronizer) {
         this.planeEquipmentSynchronizer = planeEquipmentSynchronizer;
@@ -46,15 +37,13 @@ public class MachineGun implements Runnable {
 
     private void shoot() {
         try {
-            infoOutput.showShot(
-                    planeEquipmentSynchronizer.getGuns().indexOf(this),
+            planeEquipmentSynchronizer.getInfoOutput().showShot(
                     planeEquipmentSynchronizer
                             .isGunShotBlocked(positionRelativeToPropeller));
 
             Thread.sleep(SHOT_DURATION);
 
-            infoOutput.showShootingStop(
-                    planeEquipmentSynchronizer.getGuns().indexOf(this));
+            planeEquipmentSynchronizer.getInfoOutput().showShootingStop();
         } catch (InterruptedException interruptedException) {
             Thread.currentThread().interrupt();
         }
@@ -67,31 +56,13 @@ public class MachineGun implements Runnable {
             long millis = (long) sleepTime;
             int nanos = (int) ((sleepTime - millis) * MILLIS_IN_NANOS);
 
-            int gunIndex = planeEquipmentSynchronizer.getGuns()
-                    .indexOf(this);
-
             while (!Thread.currentThread().isInterrupted()) {
                 try {
-                    boolean canShoot =
-                            !planeEquipmentSynchronizer.isGunShotBlocked(
-                                    positionRelativeToPropeller);
-
-                    if (!canShoot) {
-                        infoOutput.showCanShoot(
-                                gunIndex,
-                                false);
-                    }
+                    planeEquipmentSynchronizer.getInfoOutput()
+                            .showGunWantToShoot();
 
                     planeEquipmentSynchronizer
-                            .shotLock(positionRelativeToPropeller);
-
-                    canShoot = !planeEquipmentSynchronizer.isGunShotBlocked(
-                            positionRelativeToPropeller);
-
-                    infoOutput.showCanShoot(
-                            gunIndex,
-                            canShoot);
-
+                            .getShootingAccess(positionRelativeToPropeller);
                     try {
                         shoot();
                     } finally {

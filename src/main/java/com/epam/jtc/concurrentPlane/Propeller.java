@@ -1,7 +1,5 @@
 package com.epam.jtc.concurrentPlane;
 
-import com.epam.jtc.concurrentPlane.output.InfoOutput;
-
 import java.util.concurrent.CountDownLatch;
 
 public class Propeller implements Runnable {
@@ -24,7 +22,6 @@ public class Propeller implements Runnable {
     private int rotationSpeed;
     private Synchronizer planeEquipmentSynchronizer;
     private CountDownLatch planeWorkTimeSynchronizer;
-    private InfoOutput infoOutput;
 
     private double rotationStep;
     private double[] bladesPositions;
@@ -32,11 +29,9 @@ public class Propeller implements Runnable {
     public Propeller(int propellerRotationSpeed, int propellerBladesCount,
                      int propellerBladeWidth,
                      Synchronizer planeEquipmentSynchronizer,
-                     CountDownLatch planeWorkTimeSynchronizer,
-                     InfoOutput infoOutput) {
+                     CountDownLatch planeWorkTimeSynchronizer) {
         this.planeEquipmentSynchronizer = planeEquipmentSynchronizer;
         this.planeWorkTimeSynchronizer = planeWorkTimeSynchronizer;
-        this.infoOutput = infoOutput;
 
         if (propellerRotationSpeed < MIN_ROTATION_SPEED) {
             propellerRotationSpeed = MIN_ROTATION_SPEED;
@@ -55,8 +50,9 @@ public class Propeller implements Runnable {
         } else {
             this.bladesCount = HALF_CIRCLE / propellerBladeWidth;
 
-            infoOutput.showPropellerBladesCountExcess(propellerBladesCount,
-                    bladesCount);
+            planeEquipmentSynchronizer.getInfoOutput()
+                    .showPropellerBladesCountExcess(propellerBladesCount,
+                            bladesCount);
         }
 
         this.bladesWidth = propellerBladeWidth;
@@ -69,19 +65,12 @@ public class Propeller implements Runnable {
         rotationStep = bladesWidth * ROTATION_STEP_MULTIPLIER;
         getBladesStartPositions();
 
+        planeEquipmentSynchronizer.setBlades(bladesWidth, bladesPositions);
     }
 
     public void setPlaneEquipmentSynchronizer(
             Synchronizer planeEquipmentSynchronizer) {
         this.planeEquipmentSynchronizer = planeEquipmentSynchronizer;
-    }
-
-    public int getBladesWidth() {
-        return bladesWidth;
-    }
-
-    public double[] getBladesPositions() {
-        return bladesPositions;
     }
 
     private void getBladesStartPositions() {
@@ -94,13 +83,13 @@ public class Propeller implements Runnable {
 
     private void rotate() {
         try {
-            infoOutput.showRotation();
+            planeEquipmentSynchronizer.getInfoOutput().showRotation();
 
             updateBladesPositions();
 
             Thread.sleep(ROTATION_DURATION);
 
-            infoOutput.showRotationStop();
+            planeEquipmentSynchronizer.getInfoOutput().showRotationStop();
         } catch (InterruptedException interruptedException) {
             Thread.currentThread().interrupt();
         }
@@ -132,7 +121,8 @@ public class Propeller implements Runnable {
                     try {
                         rotate();
                     } finally {
-                        planeEquipmentSynchronizer.stopRotation();
+                        planeEquipmentSynchronizer
+                                .stopRotation(bladesPositions);
                     }
 
                     Thread.sleep(millis, nanos);

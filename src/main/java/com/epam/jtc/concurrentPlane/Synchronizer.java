@@ -1,42 +1,51 @@
 package com.epam.jtc.concurrentPlane;
 
-import java.util.List;
+import com.epam.jtc.concurrentPlane.output.InfoOutput;
+
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 class Synchronizer {
 
     private ReentrantReadWriteLock lock;
 
-    private Propeller propeller;
-    private List<MachineGun> guns;
+    private InfoOutput infoOutput;
 
-    public Synchronizer(Propeller propeller, List<MachineGun> guns) {
-        this.guns = guns;
-        this.propeller = propeller;
+    private double bladesWidth;
+    private double[] bladesPositions;
+
+    public Synchronizer(
+            InfoOutput infoOutput) {
+        this.infoOutput = infoOutput;
 
         this.lock = new ReentrantReadWriteLock();
     }
 
-    public void setPropeller(Propeller propeller) {
-        this.propeller = propeller;
-    }
-
-    public List<MachineGun> getGuns() {
-        return guns;
+    public InfoOutput getInfoOutput() {
+        return infoOutput;
     }
 
     public void getRotationAccess() {
         lock.writeLock().lock();
     }
 
-    public void stopRotation() {
+    public void setBlades(double bladesWidth, double[] bladesPositions) {
+        this.bladesWidth = bladesWidth;
+        this.bladesPositions = bladesPositions;
+    }
+
+    public void stopRotation(double[] bladesPositions) {
+        this.bladesPositions = bladesPositions;
+
         lock.writeLock().unlock();
     }
 
-    public void shotLock(int gunPosition) throws InterruptedException {
+    public void getShootingAccess(int gunPosition)
+            throws InterruptedException {
         boolean canShoot = false;
+        boolean cantShootMessageShowed = false;
 
         while (!canShoot) {
+
             if (Thread.currentThread().isInterrupted()) {
                 throw new InterruptedException();
             }
@@ -47,10 +56,16 @@ class Synchronizer {
                 canShoot = !isGunShotBlocked(gunPosition);
             } finally {
                 if (!canShoot) {
+                    if (!cantShootMessageShowed) {
+                        infoOutput.showCanShoot(false);
+                        cantShootMessageShowed = true;
+                    }
                     lock.readLock().unlock();
                 }
             }
         }
+
+        infoOutput.showCanShoot(true);
     }
 
     public void stopShooting() {
@@ -60,9 +75,10 @@ class Synchronizer {
     public boolean isGunShotBlocked(int gunPosition) {
         boolean isBlocked = false;
 
-        for (double blade : propeller.getBladesPositions()) {
+        for (double blade : bladesPositions) {
             if (gunPosition >= blade &&
-                    gunPosition <= blade + propeller.getBladesWidth()) {
+                    gunPosition <=
+                            blade + bladesWidth) {
                 isBlocked = true;
                 break;
             }

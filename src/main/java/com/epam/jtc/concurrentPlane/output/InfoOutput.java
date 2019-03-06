@@ -2,11 +2,13 @@ package com.epam.jtc.concurrentPlane.output;
 
 public interface InfoOutput {
 
-    void showShot(int gunIndex, boolean isBlocked);
+    void showShot(boolean isBlocked);
 
-    void showShootingStop(int gunIndex);
+    void showShootingStop();
 
-    void showCanShoot(int gunIndex, boolean canShoot);
+    void showCanShoot(boolean canShoot);
+
+    void showGunWantToShoot();
 
     void showWrongGunsCountWarning(int enteredCount, int maxCount);
 
