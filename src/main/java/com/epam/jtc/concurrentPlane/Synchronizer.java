@@ -20,10 +20,6 @@ class Synchronizer {
         this.lock = new ReentrantReadWriteLock();
     }
 
-    public InfoOutput getInfoOutput() {
-        return infoOutput;
-    }
-
     public void getRotationAccess() {
         lock.writeLock().lock();
     }
@@ -41,6 +37,9 @@ class Synchronizer {
 
     public void getShootingAccess(int gunPosition)
             throws InterruptedException {
+
+        infoOutput.showGunWantToShoot();
+
         boolean canShoot = false;
         boolean cantShootMessageShowed = false;
 

@@ -1,5 +1,7 @@
 package com.epam.jtc.concurrentPlane;
 
+import com.epam.jtc.concurrentPlane.output.InfoOutput;
+
 import java.util.concurrent.CountDownLatch;
 
 public class MachineGun implements Runnable {
@@ -16,11 +18,15 @@ public class MachineGun implements Runnable {
     private Synchronizer planeEquipmentSynchronizer;
     private CountDownLatch planeWorkTimeSynchronizer;
 
+    private InfoOutput infoOutput;
+
     public MachineGun(int fireRate, Synchronizer planeEquipmentSynchronizer,
                       int positionRelativeToPropeller,
-                      CountDownLatch planeWorkTimeSynchronizer) {
+                      CountDownLatch planeWorkTimeSynchronizer,
+                      InfoOutput infoOutput) {
         this.planeEquipmentSynchronizer = planeEquipmentSynchronizer;
         this.planeWorkTimeSynchronizer = planeWorkTimeSynchronizer;
+        this.infoOutput = infoOutput;
 
         if (fireRate < MIN_FIRE_RATE) {
             fireRate = MIN_FIRE_RATE;
@@ -37,15 +43,16 @@ public class MachineGun implements Runnable {
 
     private void shoot() {
         try {
-            planeEquipmentSynchronizer.getInfoOutput().showShot(
+            infoOutput.showShot(
                     planeEquipmentSynchronizer
                             .isGunShotBlocked(positionRelativeToPropeller));
 
             Thread.sleep(SHOT_DURATION);
 
-            planeEquipmentSynchronizer.getInfoOutput().showShootingStop();
         } catch (InterruptedException interruptedException) {
             Thread.currentThread().interrupt();
+        } finally {
+            infoOutput.showShootingStop();
         }
     }
 
@@ -58,11 +65,9 @@ public class MachineGun implements Runnable {
 
             while (!Thread.currentThread().isInterrupted()) {
                 try {
-                    planeEquipmentSynchronizer.getInfoOutput()
-                            .showGunWantToShoot();
-
                     planeEquipmentSynchronizer
                             .getShootingAccess(positionRelativeToPropeller);
+
                     try {
                         shoot();
                     } finally {

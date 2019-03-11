@@ -1,5 +1,7 @@
 package com.epam.jtc.concurrentPlane;
 
+import com.epam.jtc.concurrentPlane.output.InfoOutput;
+
 import java.util.concurrent.CountDownLatch;
 
 public class Propeller implements Runnable {
@@ -26,12 +28,16 @@ public class Propeller implements Runnable {
     private double rotationStep;
     private double[] bladesPositions;
 
+    private InfoOutput infoOutput;
+
     public Propeller(int propellerRotationSpeed, int propellerBladesCount,
                      int propellerBladeWidth,
                      Synchronizer planeEquipmentSynchronizer,
-                     CountDownLatch planeWorkTimeSynchronizer) {
+                     CountDownLatch planeWorkTimeSynchronizer,
+                     InfoOutput infoOutput) {
         this.planeEquipmentSynchronizer = planeEquipmentSynchronizer;
         this.planeWorkTimeSynchronizer = planeWorkTimeSynchronizer;
+        this.infoOutput = infoOutput;
 
         if (propellerRotationSpeed < MIN_ROTATION_SPEED) {
             propellerRotationSpeed = MIN_ROTATION_SPEED;
@@ -50,9 +56,8 @@ public class Propeller implements Runnable {
         } else {
             this.bladesCount = HALF_CIRCLE / propellerBladeWidth;
 
-            planeEquipmentSynchronizer.getInfoOutput()
-                    .showPropellerBladesCountExcess(propellerBladesCount,
-                            bladesCount);
+            infoOutput.showPropellerBladesCountExcess(propellerBladesCount,
+                    bladesCount);
         }
 
         this.bladesWidth = propellerBladeWidth;
@@ -83,15 +88,16 @@ public class Propeller implements Runnable {
 
     private void rotate() {
         try {
-            planeEquipmentSynchronizer.getInfoOutput().showRotation();
+            infoOutput.showRotation();
 
             updateBladesPositions();
 
             Thread.sleep(ROTATION_DURATION);
-
-            planeEquipmentSynchronizer.getInfoOutput().showRotationStop();
+            
         } catch (InterruptedException interruptedException) {
             Thread.currentThread().interrupt();
+        } finally {
+            infoOutput.showRotationStop();
         }
     }
 

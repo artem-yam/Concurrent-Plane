@@ -19,7 +19,7 @@ public class Plane implements Runnable {
     private static final int FIRE_RATE = 1500;
     private static final int GUNS_COUNT = 3;
 
-    private static final int APPLICATION_WORK_TIME = 1000;
+    private static final int APPLICATION_WORK_TIME = 5000;
     private static final int GUNS_MAX_COUNT = 6;
 
     private Propeller propeller;
@@ -49,12 +49,12 @@ public class Plane implements Runnable {
         for (int i = 0; i < gunsCount; i++) {
             machineGuns.add(new MachineGun(gunsFireRate, equipmentSynchronizer,
                     i * FULL_CIRCLE / gunsCount,
-                    workTimeSynchronizer));
+                    workTimeSynchronizer, infoOutput));
         }
 
         propeller = new Propeller(propellerRotationSpeed, propellerBladesCount,
                 propellerBladesWidth, equipmentSynchronizer,
-                workTimeSynchronizer);
+                workTimeSynchronizer, infoOutput);
 
         propeller.setPlaneEquipmentSynchronizer(equipmentSynchronizer);
         for (MachineGun gun : machineGuns) {
