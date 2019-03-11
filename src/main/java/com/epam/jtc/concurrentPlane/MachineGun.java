@@ -16,7 +16,7 @@ public class MachineGun implements Runnable {
     private final int fireRate;
     private int positionRelativeToPropeller;
     private Synchronizer planeEquipmentSynchronizer;
-    private CountDownLatch planeWorkTimeSynchronizer;
+    private volatile CountDownLatch planeWorkTimeSynchronizer;
 
     private InfoOutput infoOutput;
 

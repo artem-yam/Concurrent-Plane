@@ -19,4 +19,6 @@ public interface InfoOutput {
     void showRotation();
 
     void showRotationStop();
+
+    void showPlaneStop();
 }

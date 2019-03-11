@@ -6,7 +6,8 @@ public class LoggerInfoOutput implements InfoOutput {
 
     private static final String SHOT = "%s start shooting!";
     private static final String STOP_SHOOTING = "%s stop shooting!";
-    private static final String SHOOTING_BLOCKED = "%s can't shoot. It blocked.";
+    private static final String SHOOTING_BLOCKED =
+            "%s can't shoot. It blocked.";
     private static final String SHOOTING_ALLOWED = "%s can shoot ";
     private static final String PROPELLER_BLADES_COUNT_EXCESS =
             "Propeller blades count excess: %d. " +
@@ -19,6 +20,7 @@ public class LoggerInfoOutput implements InfoOutput {
     private static final String ROTATION = "Propeller start rotating!";
     private static final String ROTATION_STOP = "Propeller rotation stopped!";
     private static final String GUN_WANT_TO_SHOOT = "%s want to shoot.";
+    private static final String PLANE_STOP = "Plane finished work!";
 
     private final Logger logger = Logger.getLogger(this.getClass());
 
@@ -79,5 +81,10 @@ public class LoggerInfoOutput implements InfoOutput {
     @Override
     public void showRotationStop() {
         logger.info(ROTATION_STOP);
+    }
+
+    @Override
+    public void showPlaneStop() {
+        logger.info(PLANE_STOP);
     }
 }

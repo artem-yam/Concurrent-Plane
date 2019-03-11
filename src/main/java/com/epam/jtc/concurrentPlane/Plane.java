@@ -19,16 +19,16 @@ public class Plane implements Runnable {
     private static final int FIRE_RATE = 1500;
     private static final int GUNS_COUNT = 3;
 
-    private static final int APPLICATION_WORK_TIME = 5000;
+    private static final int APPLICATION_WORK_TIME = 1000;
     private static final int GUNS_MAX_COUNT = 6;
 
     private Propeller propeller;
     private List<MachineGun> machineGuns;
-    private CountDownLatch workTimeSynchronizer;
+    private volatile CountDownLatch workTimeSynchronizer;
+    private InfoOutput infoOutput = new LoggerInfoOutput();
 
     public Plane(int propellerRotationSpeed, int propellerBladesCount,
                  int propellerBladesWidth, int gunsCount, int gunsFireRate) {
-        InfoOutput infoOutput = new LoggerInfoOutput();
 
         if (gunsCount <= GUNS_MAX_COUNT) {
             if (gunsCount <= ZERO) {
@@ -42,7 +42,7 @@ public class Plane implements Runnable {
 
         machineGuns = new ArrayList<>(gunsCount);
 
-        workTimeSynchronizer = new CountDownLatch(machineGuns.size() + 1);
+        workTimeSynchronizer = new CountDownLatch(gunsCount + 1);
 
         Synchronizer equipmentSynchronizer = new Synchronizer(infoOutput);
 
@@ -60,7 +60,6 @@ public class Plane implements Runnable {
         for (MachineGun gun : machineGuns) {
             gun.setPlaneEquipmentSynchronizer(equipmentSynchronizer);
         }
-
     }
 
     public static void main(String[] args) {
@@ -101,6 +100,8 @@ public class Plane implements Runnable {
             }
 
             workTimeSynchronizer.await();
+
+            infoOutput.showPlaneStop();
         } catch (InterruptedException interruptedException) {
             Thread.currentThread().interrupt();
         }

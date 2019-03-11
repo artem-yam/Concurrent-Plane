@@ -23,7 +23,7 @@ public class Propeller implements Runnable {
     private final double distanceBetweenBlades;
     private int rotationSpeed;
     private Synchronizer planeEquipmentSynchronizer;
-    private CountDownLatch planeWorkTimeSynchronizer;
+    private volatile CountDownLatch planeWorkTimeSynchronizer;
 
     private double rotationStep;
     private double[] bladesPositions;
@@ -93,7 +93,7 @@ public class Propeller implements Runnable {
             updateBladesPositions();
 
             Thread.sleep(ROTATION_DURATION);
-            
+
         } catch (InterruptedException interruptedException) {
             Thread.currentThread().interrupt();
         } finally {
@@ -136,6 +136,7 @@ public class Propeller implements Runnable {
                     Thread.currentThread().interrupt();
                 }
             }
+
         } finally {
             planeWorkTimeSynchronizer.countDown();
         }
